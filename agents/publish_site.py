@@ -24,11 +24,10 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import time
+from datetime import UTC
 from pathlib import Path
 
 import yaml
-
 from common import (
     config_path,
     episode_dir,
@@ -47,9 +46,7 @@ log = setup_logging("publish_site")
 
 def _atomic_write_json(file_path: Path, data: dict) -> None:
     """Write JSON atomically: write to temp file then rename to prevent corruption."""
-    tmp_fd, tmp_path = tempfile.mkstemp(
-        dir=file_path.parent, suffix=".tmp", prefix=file_path.stem
-    )
+    tmp_fd, tmp_path = tempfile.mkstemp(dir=file_path.parent, suffix=".tmp", prefix=file_path.stem)
     try:
         with os.fdopen(tmp_fd, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
@@ -85,7 +82,11 @@ def _find_composed_video(ep_dir: Path, episode_number: int, suffix: str = "") ->
     # Check timestamped run folders (sorted descending = latest first)
     if compose_dir.exists():
         run_dirs = sorted(
-            [d for d in compose_dir.iterdir() if d.is_dir() and d.name.isdigit() or (len(d.name) == 15 and d.name[:8].isdigit())],
+            [
+                d
+                for d in compose_dir.iterdir()
+                if d.is_dir() and d.name.isdigit() or (len(d.name) == 15 and d.name[:8].isdigit())
+            ],
             key=lambda d: d.name,
             reverse=True,
         )
@@ -121,8 +122,8 @@ def load_publish_spec(episode_number: int, story_slug: str | None = None) -> dic
 
 def generate_publish_spec_with_llm(episode_number: int, story_slug: str) -> dict:
     """Call publisher agent via LLM to generate publish metadata."""
+    from common import get_project_root
     from llm import call_agent, parse_yaml_response
-    from common import get_project_root, story_dir
 
     project_root = get_project_root()
     ep_dir = episode_dir(episode_number, story_slug)
@@ -152,6 +153,7 @@ def generate_publish_spec_with_llm(episode_number: int, story_slug: str) -> dict
 
     # Load store.json for episode context
     import json
+
     store_path = project_root / "site" / "data" / "store.json"
     episode_context = {}
     if store_path.exists():
@@ -160,8 +162,12 @@ def generate_publish_spec_with_llm(episode_number: int, story_slug: str) -> dict
         story = next((s for s in store.get("stories", []) if s.get("slug") == story_slug), None)
         if story:
             episode = next(
-                (e for e in store.get("episodes", [])
-                 if e.get("story_id") == story["id"] and e.get("episode_number") == episode_number),
+                (
+                    e
+                    for e in store.get("episodes", [])
+                    if e.get("story_id") == story["id"]
+                    and e.get("episode_number") == episode_number
+                ),
                 None,
             )
             if episode:
@@ -190,22 +196,18 @@ NOT on any earlier script drafts. The summary reflects only the clips that were 
     story_language = get_story_language(story_slug)
 
     if story_language == "zh":
-        bilingual_instruction = (
-            "- The story's original language is Chinese (中文). Write primary content in Chinese first, with English translations"
-        )
+        bilingual_instruction = "- The story's original language is Chinese (中文). Write primary content in Chinese first, with English translations"
     else:
-        bilingual_instruction = (
-            "- Include both English and Chinese text for bilingual audience"
-        )
+        bilingual_instruction = "- Include both English and Chinese text for bilingual audience"
 
     user_message = f"""Generate the publish specification for Episode {episode_number}.
 
 {episode_content_section}
 
 ## Story Context
-- Story Title: {episode_context.get('story_title', '')}
-- Story Description: {episode_context.get('story_description', '')}
-- Episode Title: {episode_context.get('episode_title', '')}
+- Story Title: {episode_context.get("story_title", "")}
+- Story Description: {episode_context.get("story_description", "")}
+- Episode Title: {episode_context.get("episode_title", "")}
 
 ## Characters in Episode
 ```yaml
@@ -301,7 +303,9 @@ POSTER_VARIANTS = [
 ]
 
 
-def extract_gallery_frames(video_path: Path, output_dir: Path, count: int = 6, ep_dir: Path | None = None) -> list[Path]:
+def extract_gallery_frames(
+    video_path: Path, output_dir: Path, count: int = 6, ep_dir: Path | None = None
+) -> list[Path]:
     """Extract gallery frames from the composed episode.
 
     Prefers extracting the first frame of each composed clip (for variety).
@@ -333,7 +337,12 @@ def extract_gallery_frames(video_path: Path, output_dir: Path, count: int = 6, e
         if clips_dir.exists():
             # Find latest run dir in clips/
             run_dirs = sorted(
-                [d for d in clips_dir.iterdir() if d.is_dir() and (d.name.isdigit() or (len(d.name) == 15 and d.name[:8].isdigit()))],
+                [
+                    d
+                    for d in clips_dir.iterdir()
+                    if d.is_dir()
+                    and (d.name.isdigit() or (len(d.name) == 15 and d.name[:8].isdigit()))
+                ],
                 key=lambda d: d.name,
                 reverse=True,
             )
@@ -347,22 +356,30 @@ def extract_gallery_frames(video_path: Path, output_dir: Path, count: int = 6, e
                 # Filter to only clips used in compose (edit_plan assembly_order)
                 if composed_clip_names:
                     clip_files = [f for f in all_clips if f.name in composed_clip_names]
-                    log.info(f"Filtered to {len(clip_files)} clips (from {len(all_clips)} total) matching edit_plan")
+                    log.info(
+                        f"Filtered to {len(clip_files)} clips (from {len(all_clips)} total) matching edit_plan"
+                    )
                 else:
                     clip_files = all_clips
 
         if clip_files:
-            log.info(f"Extracting gallery from {len(clip_files)} individual clips (first frame each)")
+            log.info(
+                f"Extracting gallery from {len(clip_files)} individual clips (first frame each)"
+            )
             # Select up to `count` clips evenly distributed
             step = max(1, len(clip_files) // count)
             selected_clips = clip_files[::step][:count]
             for i, clip_file in enumerate(selected_clips, 1):
                 frame_path = output_dir / f"gallery_{i:02d}.jpg"
                 cmd = [
-                    "ffmpeg", "-y",
-                    "-i", str(clip_file),
-                    "-frames:v", "1",
-                    "-q:v", "2",
+                    "ffmpeg",
+                    "-y",
+                    "-i",
+                    str(clip_file),
+                    "-frames:v",
+                    "1",
+                    "-q:v",
+                    "2",
                     str(frame_path),
                 ]
                 result = subprocess.run(cmd, capture_output=True, text=True, timeout=150)
@@ -378,7 +395,9 @@ def extract_gallery_frames(video_path: Path, output_dir: Path, count: int = 6, e
     try:
         probe = subprocess.run(
             ["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", str(video_path)],
-            capture_output=True, text=True, timeout=150,
+            capture_output=True,
+            text=True,
+            timeout=150,
         )
         probe_data = json.loads(probe.stdout)
         duration = float(probe_data["format"]["duration"])
@@ -396,11 +415,16 @@ def extract_gallery_frames(video_path: Path, output_dir: Path, count: int = 6, e
         timestamp = start + interval * i
         frame_path = output_dir / f"gallery_{i:02d}.jpg"
         cmd = [
-            "ffmpeg", "-y",
-            "-ss", f"{timestamp:.2f}",
-            "-i", str(video_path),
-            "-frames:v", "1",
-            "-q:v", "2",
+            "ffmpeg",
+            "-y",
+            "-ss",
+            f"{timestamp:.2f}",
+            "-i",
+            str(video_path),
+            "-frames:v",
+            "1",
+            "-q:v",
+            "2",
             str(frame_path),
         ]
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=150)
@@ -449,7 +473,9 @@ def _create_composite_reference(
     # Scale all to 512 height and stack horizontally
     filter_parts = []
     for i in range(n):
-        filter_parts.append(f"[{i}:v]scale=-1:512:force_original_aspect_ratio=decrease,pad=ih*3/4:512:(ow-iw)/2:(oh-ih)/2[img{i}]")
+        filter_parts.append(
+            f"[{i}:v]scale=-1:512:force_original_aspect_ratio=decrease,pad=ih*3/4:512:(ow-iw)/2:(oh-ih)/2[img{i}]"
+        )
     # hstack all
     inputs = "".join(f"[img{i}]" for i in range(n))
     filter_parts.append(f"{inputs}hstack=inputs={n}[out]")
@@ -459,7 +485,9 @@ def _create_composite_reference(
     result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
     if result.returncode == 0 and output_path.exists():
         return output_path
-    log.warning(f"Composite reference creation failed: {result.stderr[:200] if result.stderr else ''}")
+    log.warning(
+        f"Composite reference creation failed: {result.stderr[:200] if result.stderr else ''}"
+    )
     # Fallback: just return the gallery frame
     return gallery_frame if gallery_frame and gallery_frame.exists() else None
 
@@ -479,12 +507,16 @@ def _add_logo_watermark(image_path: Path) -> Path:
     tmp_path = image_path.parent / f"_wm_{image_path.name}"
     # Scale logo to 20% of image width, position at bottom-left with 5% margin
     cmd = [
-        "ffmpeg", "-y",
-        "-i", str(image_path),
-        "-i", str(logo_path),
+        "ffmpeg",
+        "-y",
+        "-i",
+        str(image_path),
+        "-i",
+        str(logo_path),
         "-filter_complex",
         "[1:v]scale=iw*0.20:-1[logo];[0:v][logo]overlay=W*0.03:H-h-H*0.05",
-        "-q:v", "2",
+        "-q:v",
+        "2",
         str(tmp_path),
     ]
     result = subprocess.run(cmd, capture_output=True, text=True, timeout=150)
@@ -521,7 +553,10 @@ def _load_titles_from_store(story_slug: str, episode_number: int | None = None) 
                 result["story_title_zh"] = st.get("title_zh", "")
                 if episode_number is not None:
                     for ep in store_data.get("episodes", []):
-                        if ep.get("story_id") == st["id"] and ep.get("episode_number") == episode_number:
+                        if (
+                            ep.get("story_id") == st["id"]
+                            and ep.get("episode_number") == episode_number
+                        ):
                             result["episode_title"] = ep.get("title", "")
                             result["episode_title_zh"] = ep.get("title_zh", "")
                             break
@@ -578,10 +613,12 @@ def _load_poster_context(ep_dir: Path, story_slug: str) -> dict:
                 context["title_zh"] = context["title"]
             # Get character names from final summary
             for cs in summary.get("character_states", []):
-                context["characters"].append({
-                    "name": cs.get("name", ""),
-                    "name_zh": cs.get("name_zh", cs.get("name_en", "")),
-                })
+                context["characters"].append(
+                    {
+                        "name": cs.get("name", ""),
+                        "name_zh": cs.get("name_zh", cs.get("name_en", "")),
+                    }
+                )
         except Exception as e:
             log.warning(f"Could not load final summary for poster context: {e}")
 
@@ -597,9 +634,11 @@ def _load_poster_context(ep_dir: Path, story_slug: str) -> dict:
                 for c in context["characters"]:
                     c_name = c.get("name", "")
                     c_name_en = c.get("name_en", c.get("name_zh", ""))
-                    if (c_name == ch_name
-                            or c_name_en.lower().replace(" ", "_") == ch_name_lower
-                            or c_name.lower().replace(" ", "_") == ch_name_lower):
+                    if (
+                        c_name == ch_name
+                        or c_name_en.lower().replace(" ", "_") == ch_name_lower
+                        or c_name.lower().replace(" ", "_") == ch_name_lower
+                    ):
                         c["prompt_keywords"] = ch.get("prompt_keywords", "")
                         # Also store the English name for avatar lookup
                         if not c.get("name_en"):
@@ -664,7 +703,10 @@ def _generate_poster_seedream(
     gen_w, gen_h = width, height
     if gen_w * gen_h < MIN_PIXELS:
         import math
-        scale = math.ceil(math.sqrt(MIN_PIXELS / (gen_w * gen_h)) * 10) / 10  # round up to 1 decimal
+
+        scale = (
+            math.ceil(math.sqrt(MIN_PIXELS / (gen_w * gen_h)) * 10) / 10
+        )  # round up to 1 decimal
         gen_w = int(gen_w * scale)
         gen_h = int(gen_h * scale)
         # Ensure even dimensions
@@ -689,7 +731,9 @@ def _generate_poster_seedream(
     if reference_frame and reference_frame.exists():
         ref_b64 = base64.b64encode(reference_frame.read_bytes()).decode("utf-8")
         data["image"] = f"data:image/jpeg;base64,{ref_b64}"
-        data["strength"] = 0.55  # Strong reference — preserve character appearance from avatar sheet
+        data["strength"] = (
+            0.55  # Strong reference — preserve character appearance from avatar sheet
+        )
 
     raw_path = output_path.parent / f"_raw_{output_path.name}"
 
@@ -698,12 +742,15 @@ def _generate_poster_seedream(
         try:
             resp = req.post(
                 "https://ark.ap-southeast.bytepluses.com/api/v3/images/generations",
-                headers=headers, json=data, timeout=1200,
+                headers=headers,
+                json=data,
+                timeout=1200,
             )
             if resp.status_code != 200:
                 log.warning(f"Seedream poster error ({resp.status_code}): {resp.text[:200]}")
                 if attempt < max_retries:
                     import time as _time
+
                     _time.sleep(5 * attempt)
                     continue
                 return None
@@ -728,6 +775,7 @@ def _generate_poster_seedream(
                 log.warning("Seedream returned no image data for poster")
                 if attempt < max_retries:
                     import time as _time
+
                     _time.sleep(5 * attempt)
                     continue
                 return None
@@ -747,6 +795,7 @@ def _generate_poster_seedream(
             log.warning(f"Seedream poster network error (attempt {attempt}/{max_retries}): {e}")
             if attempt < max_retries:
                 import time as _time
+
                 _time.sleep(5 * attempt)
                 continue
             return None
@@ -764,13 +813,17 @@ def _resize_poster(source_path: Path, output_path: Path, width: int, height: int
     cutting off AI-generated title text in the poster.
     """
     cmd = [
-        "ffmpeg", "-y",
-        "-i", str(source_path),
-        "-vf", (
+        "ffmpeg",
+        "-y",
+        "-i",
+        str(source_path),
+        "-vf",
+        (
             f"scale={width}:{height}:force_original_aspect_ratio=decrease,"
             f"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2:black"
         ),
-        "-q:v", "2",
+        "-q:v",
+        "2",
         str(output_path),
     ]
     result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
@@ -864,7 +917,7 @@ def _default_poster_font_config() -> dict:
         "subtitle_style": "lighter weight, slightly smaller",
         "title_safe_margin_percent": 10,
         "notes": "Auto-generated during first episode poster creation. "
-                 "Edit to customize font appearance for future episodes.",
+        "Edit to customize font appearance for future episodes.",
     }
 
 
@@ -941,7 +994,9 @@ def generate_story_poster(
     if poster_ctx["character_avatars"] or reference_frame:
         composite_path = posters_dir / "_composite_ref.jpg"
         composite_ref = _create_composite_reference(
-            reference_frame, poster_ctx["character_avatars"], composite_path,
+            reference_frame,
+            poster_ctx["character_avatars"],
+            composite_path,
         )
 
     negative_prompt = (
@@ -988,12 +1043,14 @@ def generate_story_poster(
             prompt_parts.append(f"story world: {narrative[:150]}")
         if style_desc:
             prompt_parts.append(style_desc)
-        prompt_parts.extend([
-            f"title text '{title}' as elegant logo",
-            font_prompt,
-            "series poster art, atmospheric lighting",
-            "high quality illustration, vibrant colors, clean design",
-        ])
+        prompt_parts.extend(
+            [
+                f"title text '{title}' as elegant logo",
+                font_prompt,
+                "series poster art, atmospheric lighting",
+                "high quality illustration, vibrant colors, clean design",
+            ]
+        )
         prompt = ", ".join(prompt_parts)
 
         variant_name = f"{orientation}_{lang}"
@@ -1001,7 +1058,12 @@ def generate_story_poster(
         log.info(f"Generating story poster {variant_name} ({w}x{h}): '{title}'")
 
         result = _generate_poster_seedream(
-            prompt, composite_ref, poster_path, w, h, negative_prompt,
+            prompt,
+            composite_ref,
+            poster_path,
+            w,
+            h,
+            negative_prompt,
         )
         if result:
             generated[variant_name] = result
@@ -1075,9 +1137,8 @@ def generate_episode_poster(
             try:
                 sg = yaml.safe_load(style_path.read_text(encoding="utf-8"))
                 if isinstance(sg, dict):
-                    style_desc = (
-                        sg.get("animation_style", {}).get("description", "")
-                        or sg.get("visual_style", "")
+                    style_desc = sg.get("animation_style", {}).get("description", "") or sg.get(
+                        "visual_style", ""
                     )
             except Exception:
                 pass
@@ -1087,7 +1148,9 @@ def generate_episode_poster(
     if poster_ctx["character_avatars"] or reference_frame:
         composite_path = poster_dir / "_composite_ref.jpg"
         composite_ref = _create_composite_reference(
-            reference_frame, poster_ctx["character_avatars"], composite_path,
+            reference_frame,
+            poster_ctx["character_avatars"],
+            composite_path,
         )
 
     negative_prompt = (
@@ -1126,20 +1189,24 @@ def generate_episode_poster(
         # Character descriptions FIRST (most important for accuracy)
         if char_descriptions:
             prompt_parts.append(f"MUST feature these exact characters: {char_descriptions}")
-        prompt_parts.extend([
-            f"series title '{story_title}' displayed above episode title",
-            *composition_hints,
-        ])
+        prompt_parts.extend(
+            [
+                f"series title '{story_title}' displayed above episode title",
+                *composition_hints,
+            ]
+        )
         if narrative:
             prompt_parts.append(f"scene: {narrative[:150]}")
         if style_desc:
             prompt_parts.append(style_desc)
-        prompt_parts.extend([
-            f"story title '{story_title}' at top, episode title '{title}' and '{ep_label}' below it",
-            font_prompt,
-            "vivid scene illustration, movie poster style, emotional",
-            "high quality, dynamic composition",
-        ])
+        prompt_parts.extend(
+            [
+                f"story title '{story_title}' at top, episode title '{title}' and '{ep_label}' below it",
+                font_prompt,
+                "vivid scene illustration, movie poster style, emotional",
+                "high quality, dynamic composition",
+            ]
+        )
         prompt = ", ".join(prompt_parts)
 
         variant_name = f"{orientation}_{lang}"
@@ -1147,7 +1214,12 @@ def generate_episode_poster(
         log.info(f"Generating episode poster {variant_name} ({w}x{h}): '{title}' ({ep_label})")
 
         result = _generate_poster_seedream(
-            prompt, composite_ref, poster_path, w, h, negative_prompt,
+            prompt,
+            composite_ref,
+            poster_path,
+            w,
+            h,
+            negative_prompt,
         )
         if result:
             generated[variant_name] = result
@@ -1173,9 +1245,10 @@ def _prepend_poster_to_video(
     """
     try:
         probe = subprocess.run(
-            ["ffprobe", "-v", "quiet", "-print_format", "json",
-             "-show_streams", str(video_path)],
-            capture_output=True, text=True, timeout=150,
+            ["ffprobe", "-v", "quiet", "-print_format", "json", "-show_streams", str(video_path)],
+            capture_output=True,
+            text=True,
+            timeout=150,
         )
         probe_data = json.loads(probe.stdout)
         video_stream = next(s for s in probe_data["streams"] if s["codec_type"] == "video")
@@ -1198,22 +1271,52 @@ def _prepend_poster_to_video(
         f"[pv][mv]concat=n=2:v=1:a=0[outv]"
     )
 
-    cmd = ["ffmpeg", "-y", "-i", str(video_path),
-           "-loop", "1", "-framerate", "24", "-t", str(poster_duration),
-           "-i", str(poster_path)]
+    cmd = [
+        "ffmpeg",
+        "-y",
+        "-i",
+        str(video_path),
+        "-loop",
+        "1",
+        "-framerate",
+        "24",
+        "-t",
+        str(poster_duration),
+        "-i",
+        str(poster_path),
+    ]
 
     if has_audio:
         vf += (
             f";anullsrc=r=44100:cl=stereo,atrim=0:{poster_duration}[sil];"
             f"[sil][0:a]concat=n=2:v=0:a=1[outa]"
         )
-        cmd += ["-filter_complex", vf, "-map", "[outv]", "-map", "[outa]",
-                "-c:a", "aac", "-b:a", "192k"]
+        cmd += [
+            "-filter_complex",
+            vf,
+            "-map",
+            "[outv]",
+            "-map",
+            "[outa]",
+            "-c:a",
+            "aac",
+            "-b:a",
+            "192k",
+        ]
     else:
         cmd += ["-filter_complex", vf, "-map", "[outv]"]
 
-    cmd += ["-c:v", "libx264", "-preset", "medium", "-crf", "18",
-            "-pix_fmt", "yuv420p", str(output_path)]
+    cmd += [
+        "-c:v",
+        "libx264",
+        "-preset",
+        "medium",
+        "-crf",
+        "18",
+        "-pix_fmt",
+        "yuv420p",
+        str(output_path),
+    ]
 
     log.info(f"Prepending poster ({poster_duration}s) to video: {video_path.name}")
     result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
@@ -1242,7 +1345,6 @@ def generate_publish_assets(
     Returns dict with paths to generated assets.
     """
     ep_dir = episode_dir(episode_number, story_slug)
-    compose_dir = ep_dir / "compose"
     final_dir = ep_dir / "final"
 
     # Clean stale output directories before regenerating assets
@@ -1261,7 +1363,6 @@ def generate_publish_assets(
         return {}
 
     # Copy composed video to final/video/
-    import shutil
     video_out_dir = final_dir / "video"
     video_out_dir.mkdir(parents=True, exist_ok=True)
     final_video = video_out_dir / f"episode_{episode_number}.mp4"
@@ -1288,7 +1389,8 @@ def generate_publish_assets(
 
     # 3. Generate episode poster
     ep_poster = generate_episode_poster(
-        episode_number, story_slug,
+        episode_number,
+        story_slug,
         reference_frame=reference_frame,
     )
     assets["episode_posters"] = ep_poster
@@ -1296,7 +1398,8 @@ def generate_publish_assets(
     # 4. Generate story poster (uses this episode's frames as reference)
     # Only generate if no story poster exists yet (first episode) OR always regenerate
     story_posters = generate_story_poster(
-        story_slug, episode_number,
+        story_slug,
+        episode_number,
         reference_frame=reference_frame,
     )
     assets["story_posters"] = story_posters
@@ -1318,9 +1421,10 @@ def generate_publish_assets(
     for vid, lang in [(final_video, "zh")] + ([(final_en_video, "en")] if en_video_path else []):
         try:
             probe = subprocess.run(
-                ["ffprobe", "-v", "quiet", "-print_format", "json",
-                 "-show_streams", str(vid)],
-                capture_output=True, text=True, timeout=150,
+                ["ffprobe", "-v", "quiet", "-print_format", "json", "-show_streams", str(vid)],
+                capture_output=True,
+                text=True,
+                timeout=150,
             )
             info = json.loads(probe.stdout)
             vs = next(s for s in info["streams"] if s["codec_type"] == "video")
@@ -1332,7 +1436,9 @@ def generate_publish_assets(
         if not poster_file.exists():
             poster_file = poster_dir / f"poster_{orientation}_{other_lang}.png"
             if poster_file.exists():
-                log.info(f"  Poster {orientation}_{lang} not found, falling back to {orientation}_{other_lang}")
+                log.info(
+                    f"  Poster {orientation}_{lang} not found, falling back to {orientation}_{other_lang}"
+                )
         if poster_file.exists():
             out = vid.parent / f"{vid.stem}_with_poster{vid.suffix}"
             result = _prepend_poster_to_video(vid, poster_file, out)
@@ -1342,14 +1448,18 @@ def generate_publish_assets(
                 out.rename(vid)
                 log.info(f"  Replaced {vid.name} with poster-prepended version")
         else:
-            log.warning(f"  No poster found for prepend ({orientation}_{lang} or {orientation}_{other_lang})")
+            log.warning(
+                f"  No poster found for prepend ({orientation}_{lang} or {orientation}_{other_lang})"
+            )
 
     # Save asset manifest
     manifest = {
         "episode_number": episode_number,
         "story_slug": story_slug,
         "gallery": [str(f.relative_to(ep_dir)) for f in gallery_frames],
-        "episode_posters": {k: str(v.relative_to(ep_dir)) for k, v in ep_poster.items()} if ep_poster else {},
+        "episode_posters": {k: str(v.relative_to(ep_dir)) for k, v in ep_poster.items()}
+        if ep_poster
+        else {},
         "story_posters": {k: str(v) for k, v in story_posters.items()},
     }
     save_yaml(manifest, ep_dir / "publish_assets.yaml")
@@ -1379,17 +1489,21 @@ def generate_vlm_final_summary(episode_number: int, story_slug: str) -> Path | N
     if not video_path:
         log.warning("No composed video found for VLM summary. Falling back to basic summary.")
         from compose_episode import finalize_summary
+
         return finalize_summary(ep_dir)
 
     # Extract keyframes: 1 per ~5s of video for comprehensive understanding
     import tempfile
+
     keyframes_dir = Path(tempfile.mkdtemp(prefix="vlm_frames_"))
 
     try:
         # Get video duration
         probe = subprocess.run(
             ["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", str(video_path)],
-            capture_output=True, text=True, timeout=150,
+            capture_output=True,
+            text=True,
+            timeout=150,
         )
         probe_data = json.loads(probe.stdout)
         duration = float(probe_data["format"]["duration"])
@@ -1404,10 +1518,18 @@ def generate_vlm_final_summary(episode_number: int, story_slug: str) -> Path | N
         timestamp = interval * i
         frame_path = keyframes_dir / f"frame_{i:02d}.jpg"
         cmd = [
-            "ffmpeg", "-y", "-ss", f"{timestamp:.2f}",
-            "-i", str(video_path),
-            "-frames:v", "1", "-q:v", "5",
-            "-vf", "scale=720:-1",
+            "ffmpeg",
+            "-y",
+            "-ss",
+            f"{timestamp:.2f}",
+            "-i",
+            str(video_path),
+            "-frames:v",
+            "1",
+            "-q:v",
+            "5",
+            "-vf",
+            "scale=720:-1",
             str(frame_path),
         ]
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=150)
@@ -1449,7 +1571,9 @@ def generate_vlm_final_summary(episode_number: int, story_slug: str) -> Path | N
             try:
                 char_data = yaml.safe_load(yml.read_text(encoding="utf-8"))
                 if isinstance(char_data, dict):
-                    character_names.append(f"{char_data.get('name', '')} ({char_data.get('name_zh', '')})")
+                    character_names.append(
+                        f"{char_data.get('name', '')} ({char_data.get('name_zh', '')})"
+                    )
             except Exception:
                 pass
 
@@ -1499,34 +1623,34 @@ Generate a comprehensive episode summary with these fields.
 
 ```yaml
 episode_number: {episode_number}
-title: "<episode title in {'Chinese' if story_language == 'zh' else 'English'}>"
-title_{'en' if story_language == 'zh' else 'zh'}: "<translated title>"
+title: "<episode title in {"Chinese" if story_language == "zh" else "English"}>"
+title_{"en" if story_language == "zh" else "zh"}: "<translated title>"
 
 narrative_summary: |
-  <2-3 paragraph detailed narrative in {'Chinese' if story_language == 'zh' else 'English'},
+  <2-3 paragraph detailed narrative in {"Chinese" if story_language == "zh" else "English"},
    including key plot points, character actions, emotional beats,
    and the state of affairs at the end>
 
-narrative_summary_{'en' if story_language == 'zh' else 'zh'}: |
-  <same summary translated to {'English' if story_language == 'zh' else 'Chinese'}>
+narrative_summary_{"en" if story_language == "zh" else "zh"}: |
+  <same summary translated to {"English" if story_language == "zh" else "Chinese"}>
 
 key_events:
-  - "<event 1 in {'Chinese' if story_language == 'zh' else 'English'}>"
+  - "<event 1 in {"Chinese" if story_language == "zh" else "English"}>"
   - "<event 2>"
   - "<event 3>"
 
 character_states:
-  - name: "<character name in {'Chinese' if story_language == 'zh' else 'English'}>"
-    name_{'en' if story_language == 'zh' else 'zh'}: "<translated name>"
+  - name: "<character name in {"Chinese" if story_language == "zh" else "English"}>"
+    name_{"en" if story_language == "zh" else "zh"}: "<translated name>"
     status: "<where they are / what they're doing at episode end>"
     emotional_state: "<how they feel>"
     relationships: "<any relationship changes>"
 
 unresolved_threads:
-  - "<plot thread in {'Chinese' if story_language == 'zh' else 'English'}>"
+  - "<plot thread in {"Chinese" if story_language == "zh" else "English"}>"
 
 ending_state: |
-  <describe the exact visual/narrative state at the end of this episode in {'Chinese' if story_language == 'zh' else 'English'}>
+  <describe the exact visual/narrative state at the end of this episode in {"Chinese" if story_language == "zh" else "English"}>
 
 visual_style_notes: |
   <describe the visual style, color palette, and animation approach observed>
@@ -1555,12 +1679,12 @@ continuity_notes: |
     except Exception as e:
         log.warning(f"VLM summary generation failed: {e}. Falling back to basic summary.")
         from compose_episode import finalize_summary
+
         return finalize_summary(ep_dir)
     finally:
         # Cleanup temp keyframes
-        import shutil as _shutil
         try:
-            _shutil.rmtree(keyframes_dir, ignore_errors=True)
+            shutil.rmtree(keyframes_dir, ignore_errors=True)
         except Exception:
             pass
 
@@ -1602,24 +1726,39 @@ def publish(
         if store_path.exists():
             try:
                 store_data = json.loads(store_path.read_text(encoding="utf-8"))
-                story_obj = next((s for s in store_data.get("stories", []) if s.get("slug") == story_slug), None)
+                story_obj = next(
+                    (s for s in store_data.get("stories", []) if s.get("slug") == story_slug), None
+                )
                 if story_obj:
                     ep_obj = next(
-                        (e for e in store_data.get("episodes", [])
-                         if e.get("story_id") == story_obj["id"] and e.get("episode_number") == episode_number),
+                        (
+                            e
+                            for e in store_data.get("episodes", [])
+                            if e.get("story_id") == story_obj["id"]
+                            and e.get("episode_number") == episode_number
+                        ),
                         None,
                     )
                     if ep_obj:
                         # Video URLs
-                        ep_obj["video_url"] = f"/api/assets/{story_slug}/episodes/{episode_number}/final/video/episode_{episode_number}.mp4"
+                        ep_obj["video_url"] = (
+                            f"/api/assets/{story_slug}/episodes/{episode_number}/final/video/episode_{episode_number}.mp4"
+                        )
                         ep_dir_check = episode_dir(episode_number, story_slug)
                         en_video = _find_composed_video(ep_dir_check, episode_number, suffix="_EN")
                         if not en_video:
-                            en_candidate = ep_dir_check / "final" / "video" / f"episode_{episode_number}_EN.mp4"
+                            en_candidate = (
+                                ep_dir_check
+                                / "final"
+                                / "video"
+                                / f"episode_{episode_number}_EN.mp4"
+                            )
                             if en_candidate.exists():
                                 en_video = en_candidate
                         if en_video:
-                            ep_obj["video_url_en"] = f"/api/assets/{story_slug}/episodes/{episode_number}/final/video/episode_{episode_number}_EN.mp4"
+                            ep_obj["video_url_en"] = (
+                                f"/api/assets/{story_slug}/episodes/{episode_number}/final/video/episode_{episode_number}_EN.mp4"
+                            )
                             log.info(f"  EN video URL set in store.json")
 
                         # Status
@@ -1631,7 +1770,8 @@ def publish(
                         if poll and poll.get("options") and not draft:
                             # Remove any existing vote options for this episode
                             store_data["vote_options"] = [
-                                vo for vo in store_data.get("vote_options", [])
+                                vo
+                                for vo in store_data.get("vote_options", [])
                                 if vo.get("episode_id") != ep_obj["id"]
                             ]
                             next_id = store_data.get("next_id", {})
@@ -1646,22 +1786,29 @@ def publish(
                                     label = opt.get("label", "")
                                     label_zh = opt.get("label_zh", label)
                                     description = opt.get("teaser") or opt.get("description")
-                                    description_zh = opt.get("teaser_zh") or opt.get("description_zh") or description
-                                store_data.setdefault("vote_options", []).append({
-                                    "id": vote_opt_id,
-                                    "episode_id": ep_obj["id"],
-                                    "label": label,
-                                    "label_zh": label_zh,
-                                    "description": description,
-                                    "description_zh": description_zh,
-                                    "sort_order": i,
-                                })
+                                    description_zh = (
+                                        opt.get("teaser_zh")
+                                        or opt.get("description_zh")
+                                        or description
+                                    )
+                                store_data.setdefault("vote_options", []).append(
+                                    {
+                                        "id": vote_opt_id,
+                                        "episode_id": ep_obj["id"],
+                                        "label": label,
+                                        "label_zh": label_zh,
+                                        "description": description,
+                                        "description_zh": description_zh,
+                                        "sort_order": i,
+                                    }
+                                )
                                 vote_opt_id += 1
                             next_id["vote_options"] = vote_opt_id
                             store_data["next_id"] = next_id
 
                             # Open voting and set deadline (env override)
                             import os
+
                             env_hours = os.environ.get("VOTE_DEADLINE_HOURS", "")
                             if env_hours:
                                 try:
@@ -1670,12 +1817,15 @@ def publish(
                                     deadline_hours = poll.get("deadline_hours", 72)
                             else:
                                 deadline_hours = poll.get("deadline_hours", 72)
-                            from datetime import datetime, timedelta, timezone
-                            now = datetime.now(timezone.utc)
+                            from datetime import datetime, timedelta
+
+                            now = datetime.now(UTC)
                             deadline = now + timedelta(hours=int(deadline_hours))
                             ep_obj["voting_open"] = True
                             ep_obj["voting_deadline"] = deadline.isoformat()
-                            log.info(f"  Voting opened with {len(poll['options'])} options, deadline in {deadline_hours}h")
+                            log.info(
+                                f"  Voting opened with {len(poll['options'])} options, deadline in {deadline_hours}h"
+                            )
 
                         _atomic_write_json(store_path, store_data)
                         log.info(f"  Store.json updated (video URLs, votes, status)")
@@ -1699,11 +1849,18 @@ def publish(
             if store_path.exists():
                 try:
                     store_data = json.loads(store_path.read_text(encoding="utf-8"))
-                    story_obj = next((s for s in store_data.get("stories", []) if s.get("slug") == story_slug), None)
+                    story_obj = next(
+                        (s for s in store_data.get("stories", []) if s.get("slug") == story_slug),
+                        None,
+                    )
                     if story_obj:
                         ep_obj = next(
-                            (e for e in store_data.get("episodes", [])
-                             if e.get("story_id") == story_obj["id"] and e.get("episode_number") == episode_number),
+                            (
+                                e
+                                for e in store_data.get("episodes", [])
+                                if e.get("story_id") == story_obj["id"]
+                                and e.get("episode_number") == episode_number
+                            ),
                             None,
                         )
                         if ep_obj:
@@ -1712,7 +1869,9 @@ def publish(
                                 default_poster = "poster_horizontal_en.png"
                                 if "horizontal_en" in assets["episode_posters"]:
                                     default_poster = assets["episode_posters"]["horizontal_en"].name
-                                ep_obj["poster_url"] = f"/api/assets/{story_slug}/episodes/{episode_number}/final/poster/{default_poster}"
+                                ep_obj["poster_url"] = (
+                                    f"/api/assets/{story_slug}/episodes/{episode_number}/final/poster/{default_poster}"
+                                )
                             if assets.get("gallery"):
                                 ep_obj["gallery"] = [
                                     f"/api/assets/{story_slug}/episodes/{episode_number}/final/gallery/{p.name}"

@@ -24,7 +24,6 @@ Usage:
 import argparse
 import os
 import sys
-import time
 from pathlib import Path
 
 from common import episode_dir, load_env, load_yaml, save_yaml, setup_logging
@@ -87,11 +86,14 @@ def generate_music(
             # Model is loading — retry once after waiting
             log.info("  Model is loading, waiting 30s and retrying...")
             import time
+
             time.sleep(30)
             response = requests.post(api_url, headers=headers, json=payload, timeout=120)
 
         if response.status_code != 200:
-            raise RuntimeError(f"HuggingFace API returned {response.status_code}: {response.text[:200]}")
+            raise RuntimeError(
+                f"HuggingFace API returned {response.status_code}: {response.text[:200]}"
+            )
 
         if output_path is None:
             output_path = Path("music_output.wav")
@@ -145,11 +147,14 @@ def generate_narration(
         if response.status_code == 503:
             log.info("  Model is loading, waiting 30s and retrying...")
             import time
+
             time.sleep(30)
             response = requests.post(api_url, headers=headers, json=payload, timeout=120)
 
         if response.status_code != 200:
-            raise RuntimeError(f"HuggingFace API returned {response.status_code}: {response.text[:200]}")
+            raise RuntimeError(
+                f"HuggingFace API returned {response.status_code}: {response.text[:200]}"
+            )
 
         if output_path is None:
             output_path = Path("narration_output.wav")
@@ -236,13 +241,15 @@ def generate_audio_from_plan(
                     model=model_id if not is_bark else "facebook/musicgen-medium",
                     output_path=music_path,
                 )
-                manifest["tracks"].append({
-                    "type": "music",
-                    "scene": scene_num,
-                    "file": music_path.name,
-                    "time_range": time_range,
-                    "prompt": music_prompt,
-                })
+                manifest["tracks"].append(
+                    {
+                        "type": "music",
+                        "scene": scene_num,
+                        "file": music_path.name,
+                        "time_range": time_range,
+                        "prompt": music_prompt,
+                    }
+                )
             except Exception as e:
                 log.error(f"  Failed to generate music for scene {scene_num}: {e}")
 
@@ -257,12 +264,14 @@ def generate_audio_from_plan(
                     model="facebook/musicgen-medium",
                     output_path=ambient_path,
                 )
-                manifest["tracks"].append({
-                    "type": "ambient",
-                    "scene": scene_num,
-                    "file": ambient_path.name,
-                    "time_range": time_range,
-                })
+                manifest["tracks"].append(
+                    {
+                        "type": "ambient",
+                        "scene": scene_num,
+                        "file": ambient_path.name,
+                        "time_range": time_range,
+                    }
+                )
             except Exception as e:
                 log.error(f"  Failed to generate ambient for scene {scene_num}: {e}")
 
@@ -284,32 +293,36 @@ def generate_audio_from_plan(
                         model=model_id,
                         output_path=narr_path,
                     )
-                    manifest["tracks"].append({
-                        "type": "narration",
-                        "scene": scene_num,
-                        "file": narr_path.name,
-                        "character": character,
-                        "text": text,
-                        "timestamp": narr.get("timestamp", ""),
-                    })
+                    manifest["tracks"].append(
+                        {
+                            "type": "narration",
+                            "scene": scene_num,
+                            "file": narr_path.name,
+                            "character": character,
+                            "text": text,
+                            "timestamp": narr.get("timestamp", ""),
+                        }
+                    )
                 except Exception as e:
                     log.error(f"  Failed to generate narration for scene {scene_num}: {e}")
 
     # Generate credits music if present
-    credits = plan.get("credits_music", {})
-    if credits and credits.get("description"):
+    credits_music = plan.get("credits_music", {})
+    if credits_music and credits_music.get("description"):
         credits_path = output_dir / "credits_music.wav"
         try:
             generate_music(
-                prompt=credits["description"],
-                duration_seconds=credits.get("duration_seconds", 10),
+                prompt=credits_music["description"],
+                duration_seconds=credits_music.get("duration_seconds", 10),
                 model="facebook/musicgen-medium",
                 output_path=credits_path,
             )
-            manifest["tracks"].append({
-                "type": "credits",
-                "file": credits_path.name,
-            })
+            manifest["tracks"].append(
+                {
+                    "type": "credits",
+                    "file": credits_path.name,
+                }
+            )
         except Exception as e:
             log.error(f"  Failed to generate credits music: {e}")
 
@@ -324,22 +337,36 @@ def main():
     parser.add_argument("--episode", type=int, required=True, help="Episode number")
     parser.add_argument("--story", type=str, required=True, help="Story slug")
     parser.add_argument("--model", type=str, default=None, help="Audio model (musicgen, bark)")
-    parser.add_argument("--music-only", action="store_true", default=False,
-                        help="Generate only background music (default for MusicGen)")
-    parser.add_argument("--plan", type=str, default=None,
-                        help="Path to audio_plan.yaml (if not provided, uses latest)")
-    parser.add_argument("--output-dir", type=str, default=None,
-                        help="Output directory (if not provided, creates timestamped subfolder)")
+    parser.add_argument(
+        "--music-only",
+        action="store_true",
+        default=False,
+        help="Generate only background music (default for MusicGen)",
+    )
+    parser.add_argument(
+        "--plan",
+        type=str,
+        default=None,
+        help="Path to audio_plan.yaml (if not provided, uses latest)",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=str,
+        default=None,
+        help="Output directory (if not provided, creates timestamped subfolder)",
+    )
     args = parser.parse_args()
 
     # Audio model from arg, env override (pipeline), env default, or hardcoded
-    model = (args.model
-             or os.environ.get("AUDIO_MODEL_OVERRIDE")
-             or os.environ.get("AUDIO_MODEL")
-             or "musicgen")
+    model = (
+        args.model
+        or os.environ.get("AUDIO_MODEL_OVERRIDE")
+        or os.environ.get("AUDIO_MODEL")
+        or "musicgen"
+    )
     # Strip huggingface/ prefix if present from UI
     if model.startswith("huggingface/"):
-        model = model[len("huggingface/"):]
+        model = model[len("huggingface/") :]
 
     # Determine music-only mode
     is_bark = "bark" in model.lower()
@@ -364,7 +391,11 @@ def main():
                 audio_dir = ep_dir / "audio"
                 if audio_dir.exists():
                     subdirs = sorted(
-                        [d for d in audio_dir.iterdir() if d.is_dir() and (d / "audio_plan.yaml").exists()],
+                        [
+                            d
+                            for d in audio_dir.iterdir()
+                            if d.is_dir() and (d / "audio_plan.yaml").exists()
+                        ],
                         key=lambda d: d.name,
                         reverse=True,
                     )
@@ -383,6 +414,7 @@ def main():
         output_dir = Path(args.output_dir)
     else:
         from datetime import datetime
+
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
         output_dir = ep_dir / "audio" / ts
 
@@ -396,7 +428,9 @@ def main():
     # Print summary
     print("--- Audio Generation Complete ---")
     print(f"Model: {resolve_audio_model(model)}")
-    print(f"Mode: {'music only (video clips keep their narrative audio)' if music_only else 'full audio (video clip audio will be muted)'}")
+    print(
+        f"Mode: {'music only (video clips keep their narrative audio)' if music_only else 'full audio (video clip audio will be muted)'}"
+    )
     print(f"Tracks generated: {len(manifest['tracks'])}")
     print(f"Output: {output_dir}")
     for track in manifest["tracks"]:

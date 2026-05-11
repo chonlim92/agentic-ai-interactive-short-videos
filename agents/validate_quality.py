@@ -176,7 +176,6 @@ def _check_object_consistency(clip_path: Path, issues: list, metrics: dict) -> N
     """
     try:
         import cv2
-        import numpy as np
     except ImportError:
         return
 
@@ -250,7 +249,6 @@ def _check_floating_objects(clip_path: Path, issues: list, metrics: dict) -> Non
     """
     try:
         import cv2
-        import numpy as np
     except ImportError:
         return
 
@@ -280,7 +278,7 @@ def _check_floating_objects(clip_path: Path, issues: list, metrics: dict) -> Non
         h, w = frame.shape[:2]
 
         # Focus on upper half (floating objects defy gravity — they're above surfaces)
-        upper = frame[0:int(h * 0.5), :]
+        upper = frame[0 : int(h * 0.5), :]
 
         # Edge detection to find distinct object boundaries
         gray = cv2.cvtColor(upper, cv2.COLOR_BGR2GRAY)
@@ -291,7 +289,7 @@ def _check_floating_objects(clip_path: Path, issues: list, metrics: dict) -> Non
 
         # Look for small-to-medium isolated blobs (not the background or main character)
         min_area = (h * w) * 0.002  # Min 0.2% of frame
-        max_area = (h * w) * 0.08   # Max 8% of frame
+        max_area = (h * w) * 0.08  # Max 8% of frame
         suspicious_blobs = 0
 
         for contour in contours:
@@ -331,21 +329,25 @@ def _check_audio_naturalness(
     3. Repetitive noise patterns that suggest gibberish
     """
     try:
-        import subprocess
         import json as _json
+        import subprocess
     except ImportError:
         return
 
     # Use ffprobe to check audio stream existence and properties
     try:
         probe_cmd = [
-            "ffprobe", "-v", "quiet", "-print_format", "json",
-            "-show_streams", "-select_streams", "a",
+            "ffprobe",
+            "-v",
+            "quiet",
+            "-print_format",
+            "json",
+            "-show_streams",
+            "-select_streams",
+            "a",
             str(clip_path),
         ]
-        probe_result = subprocess.run(
-            probe_cmd, capture_output=True, text=True, timeout=10
-        )
+        probe_result = subprocess.run(probe_cmd, capture_output=True, text=True, timeout=10)
         if probe_result.returncode != 0:
             metrics["has_audio"] = False
             return
@@ -367,13 +369,23 @@ def _check_audio_naturalness(
 
         # Extract audio as raw PCM via ffmpeg
         extract_cmd = [
-            "ffmpeg", "-v", "quiet", "-i", str(clip_path),
-            "-vn", "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1",
-            "-f", "s16le", "pipe:1",
+            "ffmpeg",
+            "-v",
+            "quiet",
+            "-i",
+            str(clip_path),
+            "-vn",
+            "-acodec",
+            "pcm_s16le",
+            "-ar",
+            "16000",
+            "-ac",
+            "1",
+            "-f",
+            "s16le",
+            "pipe:1",
         ]
-        extract_result = subprocess.run(
-            extract_cmd, capture_output=True, timeout=15
-        )
+        extract_result = subprocess.run(extract_cmd, capture_output=True, timeout=15)
         if extract_result.returncode != 0 or len(extract_result.stdout) < 100:
             return
 
@@ -393,7 +405,7 @@ def _check_audio_naturalness(
         # Speech band (300-3400 Hz) vs total energy
         speech_mask = (freqs >= 300) & (freqs <= 3400)
         total_energy = np.sum(spectrum**2) + 1e-10
-        speech_energy = np.sum(spectrum[speech_mask]**2)
+        speech_energy = np.sum(spectrum[speech_mask] ** 2)
         speech_ratio = speech_energy / total_energy
 
         metrics["audio_speech_energy_ratio"] = round(float(speech_ratio), 3)
@@ -401,8 +413,10 @@ def _check_audio_naturalness(
         # Check for repetitive patterns (gibberish tends to have very regular repetition)
         # Split audio into small windows and check auto-correlation
         window_size = 1600  # 100ms windows
-        windows = [audio_data[i:i + window_size]
-                    for i in range(0, len(audio_data) - window_size, window_size)]
+        windows = [
+            audio_data[i : i + window_size]
+            for i in range(0, len(audio_data) - window_size, window_size)
+        ]
 
         if len(windows) >= 4:
             # Compare consecutive windows — natural speech varies, gibberish repeats
@@ -672,8 +686,9 @@ def validate_episode(episode_number: int, qa_config: dict, story_slug: str | Non
 def _get_clip_thumbnail_base64(clip_path: Path, frame_index: int = 0) -> str | None:
     """Extract a frame from a clip and return as base64 JPEG (for LLM context)."""
     try:
-        import cv2
         import base64
+
+        import cv2
 
         cap = cv2.VideoCapture(str(clip_path))
         if not cap.isOpened():
@@ -695,8 +710,9 @@ def _get_clip_thumbnail_base64(clip_path: Path, frame_index: int = 0) -> str | N
 def _get_frame_hash(clip_path: Path, frame_index: int) -> str | None:
     """Get a perceptual hash of a frame for comparison."""
     try:
-        import cv2
         import hashlib
+
+        import cv2
 
         cap = cv2.VideoCapture(str(clip_path))
         if not cap.isOpened():
@@ -801,10 +817,13 @@ def generate_clip_review(
         }
 
     # Find all clip files (exclude segment files and regen files)
-    clip_files = sorted([
-        f for f in clips_run_dir.glob("*.mp4")
-        if "_segment" not in f.name and ".regen" not in f.name
-    ])
+    clip_files = sorted(
+        [
+            f
+            for f in clips_run_dir.glob("*.mp4")
+            if "_segment" not in f.name and ".regen" not in f.name
+        ]
+    )
 
     if not clip_files:
         return {
@@ -830,7 +849,9 @@ def generate_clip_review(
             "passed": result["passed"],
             "issues": result["issues"],
             "metrics": result["metrics"],
-            "prompt": clip_prompt.get("description") or clip_prompt.get("prompt", "") if clip_prompt else "",
+            "prompt": clip_prompt.get("description") or clip_prompt.get("prompt", "")
+            if clip_prompt
+            else "",
             "suggestion": None,
             "improvement_prompt": None,
             "first_frame_hash": _get_frame_hash(clip_path, 0),
@@ -874,12 +895,13 @@ def generate_clip_review(
 
     report_path = quality_dir / "clip_review.yaml"
     save_yaml(report, str(report_path))
-    
+
     import json
+
     json_report_path = quality_dir / "clip_review.json"
     with open(json_report_path, "w", encoding="utf-8") as jf:
         json.dump(report, jf, indent=2, ensure_ascii=False)
-    
+
     log.info(f"Review report saved to {quality_dir}")
 
     return report
@@ -905,7 +927,7 @@ def _generate_llm_suggestions(clip_reviews: list[dict], qa_config: dict) -> None
     for c in clips_needing_review:
         clip_summaries.append(
             f"- {c['name']}: issues={c['issues']}, metrics={c['metrics']}, "
-            f"original_prompt=\"{c.get('prompt', 'N/A')}\""
+            f'original_prompt="{c.get("prompt", "N/A")}"'
         )
 
     user_message = f"""Review these video clips that failed quality checks. For each clip, provide:

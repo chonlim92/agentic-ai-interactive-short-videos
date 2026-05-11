@@ -146,6 +146,7 @@ def fetch_story_from_api(story_slug: str) -> dict | None:
     # Try website API first
     try:
         import urllib.request
+
         url = f"{api_base}/api/admin/stories/{story_slug}"
         req = urllib.request.Request(url, headers={"Accept": "application/json"})
         with urllib.request.urlopen(req, timeout=5) as resp:
@@ -180,9 +181,7 @@ def detect_content_language(text: str) -> str:
     """
     if not text:
         return "en"
-    cjk_count = sum(
-        1 for ch in text if '\u4e00' <= ch <= '\u9fff' or '\u3400' <= ch <= '\u4dbf'
-    )
+    cjk_count = sum(1 for ch in text if "\u4e00" <= ch <= "\u9fff" or "\u3400" <= ch <= "\u4dbf")
     total_alpha = sum(1 for ch in text if ch.isalpha())
     if total_alpha == 0:
         return "en"
@@ -202,6 +201,7 @@ def get_story_language(story_slug: str) -> str:
     so that all subsequent pipeline steps use the same language without re-detecting.
     """
     import os
+
     s_dir = story_dir(story_slug)
     bible_path = s_dir / "story_bible.yaml"
 

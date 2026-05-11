@@ -22,7 +22,6 @@ import time
 from pathlib import Path
 
 import yaml
-
 from common import config_path, get_story_language, load_env, load_yaml, setup_logging
 
 load_env()
@@ -62,7 +61,12 @@ def load_config() -> dict:
 def resolve_model_id(model_name: str) -> str:
     """Resolve short model name to full model ID."""
     # Strip provider prefix (e.g. "huggingface/", "byteplus/") if present
-    if "/" in model_name and model_name.split("/")[0].lower() in ("huggingface", "hf", "atlascloud", "byteplus"):
+    if "/" in model_name and model_name.split("/")[0].lower() in (
+        "huggingface",
+        "hf",
+        "atlascloud",
+        "byteplus",
+    ):
         model_name = "/".join(model_name.split("/")[1:])
     return MODEL_REGISTRY.get(model_name, model_name)
 
@@ -122,7 +126,9 @@ def generate_video_cloud(
     if prompt.get("reference_video"):
         ref_path = Path(prompt["reference_video"])
         if ref_path.exists():
-            reference_image = _get_continuity_reference(ref_path)  # Last frame(s) for image_to_video
+            reference_image = _get_continuity_reference(
+                ref_path
+            )  # Last frame(s) for image_to_video
 
     # Video dimensions from aspect ratio selection
     width, height, aspect_ratio = get_video_dimensions()
@@ -132,6 +138,7 @@ def generate_video_cloud(
     # Prefer image_to_video (last frame as starting point) → text_to_video fallback
     if reference_image:
         from PIL import Image
+
         ref_img = Image.open(reference_image)
         video_bytes = client.image_to_video(
             image=ref_img,
@@ -194,7 +201,9 @@ def generate_video_byteplus(
     # Prefer duration from the clip prompt YAML, then config, then default 5s
     clip_duration = prompt.get("duration_seconds") or gen_config.get("clip_duration_seconds", 10)
 
-    log.info(f"Calling BytePlus Ark API: model={model_id}, quality={quality}, duration={clip_duration}s")
+    log.info(
+        f"Calling BytePlus Ark API: model={model_id}, quality={quality}, duration={clip_duration}s"
+    )
 
     headers = {
         "Content-Type": "application/json",
@@ -212,6 +221,7 @@ def generate_video_byteplus(
         if ref_path.exists() and ref_path.stat().st_size > 100:
             try:
                 import base64
+
                 ref_frame_b64 = base64.b64encode(ref_path.read_bytes()).decode("utf-8")
             except Exception as e:
                 log.warning(f"  Could not read last-frame reference: {e}")
@@ -235,17 +245,18 @@ def generate_video_byteplus(
         if avatar_file.exists():
             try:
                 import base64 as _b64
+
                 avatar_b64 = _b64.b64encode(avatar_file.read_bytes()).decode("utf-8")
                 image_idx += 1
                 tag = f"@Image{image_idx}"
                 image_tag_map[avatar["name"]] = tag
-                content.append({
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f"data:image/png;base64,{avatar_b64}"
-                    },
-                    "role": "reference_image",
-                })
+                content.append(
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": f"data:image/png;base64,{avatar_b64}"},
+                        "role": "reference_image",
+                    }
+                )
                 avatar_names.append(avatar["name"])
             except Exception as e:
                 log.warning(f"  Could not load avatar for {avatar['name']}: {e}")
@@ -255,37 +266,37 @@ def generate_video_byteplus(
     # Pass last frame of previous clip as first_frame for continuity
     if ref_frame_url:
         image_idx += 1
-        content.append({
-            "type": "image_url",
-            "image_url": {
-                "url": ref_frame_url
-            },
-            "role": "first_frame",
-            "_is_last_frame": True,
-        })
+        content.append(
+            {
+                "type": "image_url",
+                "image_url": {"url": ref_frame_url},
+                "role": "first_frame",
+                "_is_last_frame": True,
+            }
+        )
         log.info(f"  Passing last frame URL as first_frame for seamless continuation")
     elif ref_frame_b64:
         image_idx += 1
-        content.append({
-            "type": "image_url",
-            "image_url": {
-                "url": f"data:image/jpeg;base64,{ref_frame_b64}"
-            },
-            "role": "first_frame",
-            "_is_last_frame": True,
-        })
+        content.append(
+            {
+                "type": "image_url",
+                "image_url": {"url": f"data:image/jpeg;base64,{ref_frame_b64}"},
+                "role": "first_frame",
+                "_is_last_frame": True,
+            }
+        )
         log.info(f"  Passing last frame (base64) as first_frame for seamless continuation")
 
     # Pass original video URL as reference_video for regeneration
     if ref_video_url:
-        content.append({
-            "type": "video_url",
-            "video_url": {
-                "url": ref_video_url
-            },
-            "role": "reference_video",
-            "_is_reference_video": True,  # Internal marker for retry logic
-        })
+        content.append(
+            {
+                "type": "video_url",
+                "video_url": {"url": ref_video_url},
+                "role": "reference_video",
+                "_is_reference_video": True,  # Internal marker for retry logic
+            }
+        )
         log.info(f"  Passing original video as reference_video: {ref_video_url[:80]}...")
 
     # Pass character voice references as reference_audio (asset-id based)
@@ -294,15 +305,19 @@ def generate_video_byteplus(
         audio_idx += 1
         tag = f"@Audio{audio_idx}"
         audio_tag_map[vr["name"]] = tag
-        content.append({
-            "type": "audio_url",
-            "audio_url": {
-                "url": vr["url"],  # e.g. "asset://voice_xiao_xi"
-            },
-            "role": "reference_audio",
-        })
+        content.append(
+            {
+                "type": "audio_url",
+                "audio_url": {
+                    "url": vr["url"],  # e.g. "asset://voice_xiao_xi"
+                },
+                "role": "reference_audio",
+            }
+        )
     if voice_refs:
-        log.info(f"  Passing {len(voice_refs)} voice ref(s) as reference_audio: {[vr['name'] for vr in voice_refs]}")
+        log.info(
+            f"  Passing {len(voice_refs)} voice ref(s) as reference_audio: {[vr['name'] for vr in voice_refs]}"
+        )
 
     # Store tag maps in prompt for _build_text_prompt to use
     if image_tag_map:
@@ -315,10 +330,13 @@ def generate_video_byteplus(
     log.info(f"  Prompt: {text_prompt[:500]}")
 
     # Insert text as first content item
-    content.insert(0, {
-        "type": "text",
-        "text": text_prompt,
-    })
+    content.insert(
+        0,
+        {
+            "type": "text",
+            "text": text_prompt,
+        },
+    )
 
     # Enable audio generation when voice refs are provided or config says so
     gen_config_audio = gen_config.get("generate_audio", False)
@@ -334,7 +352,9 @@ def generate_video_byteplus(
     }
 
     if enable_audio:
-        log.info(f"  Audio generation enabled (voice_refs={len(voice_refs)}, config={gen_config_audio})")
+        log.info(
+            f"  Audio generation enabled (voice_refs={len(voice_refs)}, config={gen_config_audio})"
+        )
 
     # Submit generation task
     task_url = "https://ark.ap-southeast.bytepluses.com/api/v3/contents/generations/tasks"
@@ -426,7 +446,9 @@ def generate_video_byteplus(
     log.info(f"  Task submitted: {task_id}")
 
     # Poll for completion
-    poll_url = f"https://ark.ap-southeast.bytepluses.com/api/v3/contents/generations/tasks/{task_id}"
+    poll_url = (
+        f"https://ark.ap-southeast.bytepluses.com/api/v3/contents/generations/tasks/{task_id}"
+    )
     max_wait = 300  # 5 minutes max
     elapsed = 0
     poll_interval = 5  # 5s between polls to avoid connection pressure
@@ -456,17 +478,20 @@ def generate_video_byteplus(
             except (req.exceptions.SSLError, req.exceptions.ConnectionError) as e:
                 if retry < max_poll_retries - 1:
                     wait = (retry + 1) * 2
-                    log.warning(f"  Poll retry {retry + 1}/{max_poll_retries} after SSL/connection error, waiting {wait}s...")
+                    log.warning(
+                        f"  Poll retry {retry + 1}/{max_poll_retries} after SSL/connection error, waiting {wait}s..."
+                    )
                     time.sleep(wait)
                 else:
-                    raise RuntimeError(f"BytePlus poll failed after {max_poll_retries} retries: {e}") from e
+                    raise RuntimeError(
+                        f"BytePlus poll failed after {max_poll_retries} retries: {e}"
+                    ) from e
 
         if poll_result is None:
             continue
 
         status = (
-            poll_result.get("data", {}).get("status", "")
-            or poll_result.get("status", "")
+            poll_result.get("data", {}).get("status", "") or poll_result.get("status", "")
         ).lower()
 
         if status in ("completed", "succeeded", "success"):
@@ -485,7 +510,9 @@ def generate_video_byteplus(
             if not video_url:
                 outputs = poll_result.get("data", {}).get("outputs", [])
                 if outputs:
-                    video_url = outputs[0] if isinstance(outputs[0], str) else outputs[0].get("url", "")
+                    video_url = (
+                        outputs[0] if isinstance(outputs[0], str) else outputs[0].get("url", "")
+                    )
 
             if not video_url:
                 raise RuntimeError(f"BytePlus returned success but no video output: {poll_result}")
@@ -582,7 +609,7 @@ def generate_video_local(
     is_animatediff = "animatediff-lightning" in model.lower() or "AnimateDiff-Lightning" in model_id
 
     if is_animatediff:
-        from diffusers import AnimateDiffPipeline, MotionAdapter, EulerDiscreteScheduler
+        from diffusers import AnimateDiffPipeline, EulerDiscreteScheduler, MotionAdapter
         from huggingface_hub import hf_hub_download
         from safetensors.torch import load_file
 
@@ -602,7 +629,9 @@ def generate_video_local(
             pipe.scheduler.config, timestep_spacing="trailing", beta_schedule="linear"
         )
 
-        log.info(f"Generating video locally (AnimateDiff): quality={quality}, seed={seed}, {width}x{height}")
+        log.info(
+            f"Generating video locally (AnimateDiff): quality={quality}, seed={seed}, {width}x{height}"
+        )
         result = pipe(
             prompt=text_prompt,
             negative_prompt=negative_prompt,
@@ -629,16 +658,16 @@ def generate_video_local(
 
         log.info(f"Generating video locally: quality={quality}, seed={seed}, {width}x{height}")
 
-        pipe_kwargs = dict(
-            prompt=text_prompt,
-            negative_prompt=negative_prompt,
-            num_inference_steps=params["num_inference_steps"],
-            guidance_scale=params["guidance_scale"],
-            generator=generator,
-            num_frames=fps * clip_duration,
-            height=height,
-            width=width,
-        )
+        pipe_kwargs = {
+            "prompt": text_prompt,
+            "negative_prompt": negative_prompt,
+            "num_inference_steps": params["num_inference_steps"],
+            "guidance_scale": params["guidance_scale"],
+            "generator": generator,
+            "num_frames": fps * clip_duration,
+            "height": height,
+            "width": width,
+        }
 
         # Pass conditioning frames if the pipeline supports it
         if conditioning_frames is not None:
@@ -668,9 +697,9 @@ def _save_enhanced_prompt(prompt: dict, clip_path: Path, suffix: str = "") -> Pa
     try:
         # Filter out internal/binary fields
         saveable = {
-            k: v for k, v in prompt.items()
-            if not k.startswith("_") and k != "reference_video"
-            and not isinstance(v, bytes)
+            k: v
+            for k, v in prompt.items()
+            if not k.startswith("_") and k != "reference_video" and not isinstance(v, bytes)
         }
         yaml_name = f"{clip_path.stem}{suffix}_enhanced_prompt.yaml"
         yaml_path = clip_path.parent / yaml_name
@@ -812,7 +841,9 @@ def _build_text_prompt(prompt: dict) -> str:
                     voice_instructions = []
                     for name in avatar_names:
                         if name in audio_tags:
-                            voice_instructions.append(f"{name} speaks matching the voice track from {audio_tags[name]}")
+                            voice_instructions.append(
+                                f"{name} speaks matching the voice track from {audio_tags[name]}"
+                            )
                     if voice_instructions:
                         instr_parts.append(f"Voice drive: {', '.join(voice_instructions)}.")
 
@@ -916,7 +947,9 @@ def _build_text_prompt(prompt: dict) -> str:
     # but we still note the speaking action context here.
     dialogue = prompt.get("dialogue")
     if dialogue and isinstance(dialogue, list):
-        speaking_chars = [d.get("character", "") for d in dialogue if isinstance(d, dict) and d.get("line")]
+        speaking_chars = [
+            d.get("character", "") for d in dialogue if isinstance(d, dict) and d.get("line")
+        ]
         if speaking_chars:
             if lang == "zh":
                 content_parts.append(f"{'、'.join(speaking_chars)}在说话")
@@ -1026,10 +1059,36 @@ def _build_text_prompt(prompt: dict) -> str:
 
     # ── [Rules] ── Quality and physics constraints
     # Detect if this clip involves electronic devices
-    text_blob = " ".join(str(prompt.get(k, "")) for k in ("prompt", "description", "subject", "action", "environment"))
-    device_keywords_zh = ("笔记本", "电脑", "手机", "平板", "显示器", "屏幕", "键盘", "手提电脑", "iPad", "显示屏")
-    device_keywords_en = ("laptop", "computer", "phone", "tablet", "monitor", "screen", "keyboard", "ipad", "display")
-    has_device = any(kw in text_blob for kw in device_keywords_zh) or any(kw in text_blob.lower() for kw in device_keywords_en)
+    text_blob = " ".join(
+        str(prompt.get(k, ""))
+        for k in ("prompt", "description", "subject", "action", "environment")
+    )
+    device_keywords_zh = (
+        "笔记本",
+        "电脑",
+        "手机",
+        "平板",
+        "显示器",
+        "屏幕",
+        "键盘",
+        "手提电脑",
+        "iPad",
+        "显示屏",
+    )
+    device_keywords_en = (
+        "laptop",
+        "computer",
+        "phone",
+        "tablet",
+        "monitor",
+        "screen",
+        "keyboard",
+        "ipad",
+        "display",
+    )
+    has_device = any(kw in text_blob for kw in device_keywords_zh) or any(
+        kw in text_blob.lower() for kw in device_keywords_en
+    )
 
     # Determine if this clip has dialogue (for audio speech rules)
     has_dialogue = False
@@ -1038,9 +1097,7 @@ def _build_text_prompt(prompt: dict) -> str:
         has_dialogue = any(isinstance(d, dict) and d.get("line") for d in dialogue)
 
     if lang == "zh":
-        rules = (
-            "固定镜头，物理真实，背景人物自然走动。"
-        )
+        rules = "固定镜头，物理真实，背景人物自然走动。"
         if has_device:
             rules += (
                 "笔记本电脑和手机的屏幕内容只能出现在两个位置："
@@ -1101,9 +1158,7 @@ def _build_text_prompt(prompt: dict) -> str:
             "如果参考图片中有字幕文字，忽略它，不要复制到新视频中。"
         )
     else:
-        rules = (
-            "Static camera, physically realistic, background people moving naturally. "
-        )
+        rules = "Static camera, physically realistic, background people moving naturally. "
         if has_device:
             rules += (
                 "Laptop and phone screen content may ONLY appear in two places: "
@@ -1179,8 +1234,8 @@ def enhance_prompt_with_llm(prompt: dict) -> dict:
     the prompt for better video generation results. Includes style guide
     and character reference keywords for consistency.
     """
-    from llm import call_agent, parse_yaml_response
     from common import get_project_root
+    from llm import call_agent, parse_yaml_response
 
     project_root = get_project_root()
     raw_prompt = _build_text_prompt(prompt)
@@ -1200,7 +1255,7 @@ CRITICAL: The ENTIRE output (prompt, negative_prompt, style, camera, lighting) M
 
 ## Original Prompt (scene fields only)
 ```yaml
-{__import__('yaml').dump({k: v for k, v in prompt.items() if not k.startswith('_') and k != 'reference_video'}, default_flow_style=False, allow_unicode=True)}
+{__import__("yaml").dump({k: v for k, v in prompt.items() if not k.startswith("_") and k != "reference_video"}, default_flow_style=False, allow_unicode=True)}
 ```
 
 ## Text Prompt
@@ -1212,12 +1267,12 @@ CRITICAL: The ENTIRE output (prompt, negative_prompt, style, camera, lighting) M
 ```
 
 ## Video Generation Constraints
-- Clip duration: {prompt.get('duration_seconds', 10)} seconds — the prompt must describe enough ACTION to fill this duration
+- Clip duration: {prompt.get("duration_seconds", 10)} seconds — the prompt must describe enough ACTION to fill this duration
 - Resolution: 720p minimum, FPS: 24
 - The prompt must describe a rich SEQUENCE of actions/events that fill the clip's full duration
 - Do NOT describe a static scene — describe MOTION, CHANGE, and PROGRESSION
 - Do NOT add instruction-style rules to the prompt (no "must", "never", "always")
-{('## Previous Quality Issues (FIX THESE in the enhanced prompt)' + chr(10) + chr(10).join('- ' + i for i in prompt['_quality_issues']) + chr(10)) if prompt.get('_quality_issues') else ''}
+{("## Previous Quality Issues (FIX THESE in the enhanced prompt)" + chr(10) + chr(10).join("- " + i for i in prompt["_quality_issues"]) + chr(10)) if prompt.get("_quality_issues") else ""}
 
 ## Requirements
 - Keep the original intent but add cinematic visual detail and MOTION
@@ -1242,7 +1297,7 @@ negative_prompt: "<comprehensive negative prompt in {target_lang_instruction}>"
 style: "<visual style in {target_lang_instruction}>"
 camera: "<camera movement in {target_lang_instruction}>"
 lighting: "<lighting setup in {target_lang_instruction}>"
-duration_seconds: {prompt.get('duration_seconds', 10)}
+duration_seconds: {prompt.get("duration_seconds", 10)}
 """
 
     try:
@@ -1251,7 +1306,9 @@ duration_seconds: {prompt.get('duration_seconds', 10)}
         # Merge enhanced fields back into original prompt
         # ONLY overwrite visual/cinematic fields — preserve audio/narrative fields
         prompt["description"] = enhanced.get("prompt", prompt.get("description", raw_prompt))
-        prompt["negative_prompt"] = enhanced.get("negative_prompt", prompt.get("negative_prompt", ""))
+        prompt["negative_prompt"] = enhanced.get(
+            "negative_prompt", prompt.get("negative_prompt", "")
+        )
         if "style" in enhanced:
             prompt["style"] = enhanced["style"]
         if "camera" in enhanced:
@@ -1276,30 +1333,66 @@ def _generate_missing_dialogue(prompt: dict) -> None:
     """If prompt describes speaking actions but has no dialogue, generate it via LLM."""
     # Check if dialogue already exists
     dialogue = prompt.get("dialogue")
-    if dialogue and isinstance(dialogue, list) and any(
-        isinstance(d, dict) and d.get("line") for d in dialogue
+    if (
+        dialogue
+        and isinstance(dialogue, list)
+        and any(isinstance(d, dict) and d.get("line") for d in dialogue)
     ):
         return  # Dialogue already present
 
     # Check if the prompt text describes speaking/explaining actions
-    text_blob = " ".join(str(prompt.get(k, "")) for k in (
-        "prompt", "description", "subject", "action"
-    )).lower()
+    text_blob = " ".join(
+        str(prompt.get(k, "")) for k in ("prompt", "description", "subject", "action")
+    ).lower()
 
     speaking_keywords_zh = (
-        "解释", "说", "讲", "告诉", "回答", "问", "喊", "叫",
-        "介绍", "描述", "聊天", "交谈", "对话", "询问", "叙述",
-        "提醒", "劝", "安慰", "争论", "吐槽", "感叹", "嘀咕",
+        "解释",
+        "说",
+        "讲",
+        "告诉",
+        "回答",
+        "问",
+        "喊",
+        "叫",
+        "介绍",
+        "描述",
+        "聊天",
+        "交谈",
+        "对话",
+        "询问",
+        "叙述",
+        "提醒",
+        "劝",
+        "安慰",
+        "争论",
+        "吐槽",
+        "感叹",
+        "嘀咕",
     )
     speaking_keywords_en = (
-        "explain", "say", "tell", "speak", "ask", "answer", "shout",
-        "describe", "introduce", "chat", "converse", "talk", "discuss",
-        "narrate", "argue", "comfort", "remind", "mutter", "exclaim",
+        "explain",
+        "say",
+        "tell",
+        "speak",
+        "ask",
+        "answer",
+        "shout",
+        "describe",
+        "introduce",
+        "chat",
+        "converse",
+        "talk",
+        "discuss",
+        "narrate",
+        "argue",
+        "comfort",
+        "remind",
+        "mutter",
+        "exclaim",
     )
 
-    has_speaking_action = (
-        any(kw in text_blob for kw in speaking_keywords_zh) or
-        any(kw in text_blob for kw in speaking_keywords_en)
+    has_speaking_action = any(kw in text_blob for kw in speaking_keywords_zh) or any(
+        kw in text_blob for kw in speaking_keywords_en
     )
 
     if not has_speaking_action:
@@ -1321,9 +1414,9 @@ def _generate_missing_dialogue(prompt: dict) -> None:
         dialogue_request = f"""Based on this scene description, generate natural dialogue lines for the characters.
 
 Scene description: {text_blob[:500]}
-Characters present: {', '.join(characters) if characters else 'Unknown'}
+Characters present: {", ".join(characters) if characters else "Unknown"}
 Language: {target_lang}
-Duration: {prompt.get('duration_seconds', 10)} seconds
+Duration: {prompt.get("duration_seconds", 10)} seconds
 
 Rules:
 - Generate 1-3 short dialogue lines that fit naturally into the scene
@@ -1346,15 +1439,19 @@ dialogue:
             valid_lines = []
             for d in generated_dialogue:
                 if isinstance(d, dict) and d.get("line"):
-                    valid_lines.append({
-                        "character": d.get("character", ""),
-                        "line": d.get("line", ""),
-                        "emotion": d.get("emotion", ""),
-                    })
+                    valid_lines.append(
+                        {
+                            "character": d.get("character", ""),
+                            "line": d.get("line", ""),
+                            "emotion": d.get("emotion", ""),
+                        }
+                    )
             if valid_lines:
                 prompt["dialogue"] = valid_lines
-                log.info(f"  Generated {len(valid_lines)} dialogue line(s): "
-                         f"{'; '.join(d['line'][:30] for d in valid_lines)}")
+                log.info(
+                    f"  Generated {len(valid_lines)} dialogue line(s): "
+                    f"{'; '.join(d['line'][:30] for d in valid_lines)}"
+                )
     except Exception as e:
         log.warning(f"  Dialogue generation failed: {e} — clip will have no speech audio")
 
@@ -1469,6 +1566,7 @@ def regenerate_clip(
     else:
         # Try scene-level prompt
         import re as _re
+
         match = _re.match(r"(scene_\d+)", clip_name)
         if match:
             scene_prompt_file = scenes_run_dir / f"{match.group(1)}_prompt.yaml"
@@ -1541,7 +1639,9 @@ prompt: "<detailed visual prompt>"
                 log.info(f"Retrying in {backoff}s...")
                 time.sleep(backoff)
             else:
-                raise RuntimeError(f"All regeneration attempts failed for {original_clip.name}")
+                raise RuntimeError(
+                    f"All regeneration attempts failed for {original_clip.name}"
+                ) from e
 
     log.info(f"Regenerated clip saved: {regen_path} ({regen_path.stat().st_size / 1024:.1f} KB)")
 
@@ -1554,12 +1654,13 @@ prompt: "<detailed visual prompt>"
 
 def _extract_last_segment(video_path: Path) -> Path | None:
     """Extract the last few frames (~0.25s) of a video clip for continuity.
-    
+
     Kept short to avoid the model wasting generation capacity reproducing
     the previous clip content.
     """
     try:
         import cv2
+
         cap = cv2.VideoCapture(str(video_path))
         if not cap.isOpened():
             return None
@@ -1594,7 +1695,7 @@ def _extract_last_segment(video_path: Path) -> Path | None:
             writer.write(frame)
         writer.release()
 
-        log.info(f"  Extracted last {len(frames)} frames ({len(frames)/fps:.1f}s) for continuity")
+        log.info(f"  Extracted last {len(frames)} frames ({len(frames) / fps:.1f}s) for continuity")
         return segment_path
     except ImportError:
         log.warning("cv2 not available; cannot extract last segment for continuity")
@@ -1616,6 +1717,7 @@ def _get_continuity_reference(ref_path: Path) -> Path | None:
     """
     try:
         import cv2
+
         cap = cv2.VideoCapture(str(ref_path))
         if not cap.isOpened():
             return None
@@ -1643,6 +1745,7 @@ def _get_continuity_reference(ref_path: Path) -> Path | None:
         if len(frames) > 1:
             # Create a horizontal strip of the last few frames
             import numpy as np
+
             # Resize frames to a consistent height for the grid
             target_h = 360
             resized = []
@@ -1672,7 +1775,7 @@ def _get_continuity_reference(ref_path: Path) -> Path | None:
         return None
 
 
-def _get_continuity_frames_for_local(ref_path: Path, device, torch) -> "torch.Tensor | None":
+def _get_continuity_frames_for_local(ref_path: Path, device, torch) -> "torch.Tensor | None":  # noqa: A002, F821
     """
     Progressive fallback continuity for local pipeline generation.
     Returns a tensor of conditioning frames, or None for text-only.
@@ -1699,7 +1802,8 @@ def _get_continuity_frames_for_local(ref_path: Path, device, torch) -> "torch.Te
             cap.release()
             if frames:
                 conditioning_frames = [
-                    torch.from_numpy(cv2.cvtColor(f, cv2.COLOR_BGR2RGB)).permute(2, 0, 1).float() / 255.0
+                    torch.from_numpy(cv2.cvtColor(f, cv2.COLOR_BGR2RGB)).permute(2, 0, 1).float()
+                    / 255.0
                     for f in frames
                 ]
                 conditioning_frames = torch.stack(conditioning_frames).to(device)
@@ -1727,7 +1831,8 @@ def _get_continuity_frames_for_local(ref_path: Path, device, torch) -> "torch.Te
 
         if frames:
             conditioning_frames = [
-                torch.from_numpy(cv2.cvtColor(f, cv2.COLOR_BGR2RGB)).permute(2, 0, 1).float() / 255.0
+                torch.from_numpy(cv2.cvtColor(f, cv2.COLOR_BGR2RGB)).permute(2, 0, 1).float()
+                / 255.0
                 for f in frames
             ]
             conditioning_frames = torch.stack(conditioning_frames).to(device)
@@ -1753,10 +1858,12 @@ def _load_story_characters(story_slug: str) -> list[dict]:
     if story_slug in _character_cache:
         return _character_cache[story_slug]
     from common import get_project_root
+
     chars_dir = get_project_root() / "data" / "stories" / story_slug / "characters"
     characters = []
     if chars_dir.exists():
         import yaml as _yaml
+
         for f in chars_dir.glob("*.yaml"):
             if f.name == "README.yaml":
                 continue
@@ -1775,10 +1882,12 @@ def _load_story_locations(story_slug: str) -> list[dict]:
     if story_slug in _location_cache:
         return _location_cache[story_slug]
     from common import get_project_root
+
     locs_dir = get_project_root() / "data" / "stories" / story_slug / "locations"
     locations = []
     if locs_dir.exists():
         import yaml as _yaml
+
         for f in locs_dir.glob("*.yaml"):
             if f.name == "README.yaml":
                 continue
@@ -1869,7 +1978,11 @@ def _inject_character_context(prompt: dict, story_slug: str | None) -> None:
         if loc.get("description"):
             loc_parts.append(loc["description"])
         if loc.get("visual_features"):
-            loc_parts.append(", ".join(loc["visual_features"]) if isinstance(loc["visual_features"], list) else loc["visual_features"])
+            loc_parts.append(
+                ", ".join(loc["visual_features"])
+                if isinstance(loc["visual_features"], list)
+                else loc["visual_features"]
+            )
         if loc_parts:
             matched_parts.append(f"[Location: {loc_name}]: {'; '.join(loc_parts)}")
 
@@ -1899,6 +2012,7 @@ def _inject_character_context(prompt: dict, story_slug: str | None) -> None:
     # Collect character avatar image paths (full-body reference PNGs)
     avatar_paths = []
     from common import get_project_root
+
     avatars_dir = get_project_root() / "data" / "stories" / story_slug / "characters" / "avatars"
     for char in characters:
         matched_name = _name_in_text(char, text)
@@ -1909,17 +2023,20 @@ def _inject_character_context(prompt: dict, story_slug: str | None) -> None:
         slug = char.get("slug", "")
         if not slug:
             import re as _re
+
             slug_try = name.lower().replace(" ", "_")
-            if slug_try.isascii() and _re.match(r'^[a-z0-9_]+$', slug_try):
+            if slug_try.isascii() and _re.match(r"^[a-z0-9_]+$", slug_try):
                 slug = slug_try
             else:
                 try:
-                    from pypinyin import pinyin, Style
+                    from pypinyin import Style, pinyin
+
                     py = pinyin(name, style=Style.NORMAL)
                     slug = "_".join(s[0] for s in py if s[0])
-                    slug = _re.sub(r'[^a-z0-9_]', '', slug.lower())
+                    slug = _re.sub(r"[^a-z0-9_]", "", slug.lower())
                 except ImportError:
                     import hashlib as _hl
+
                     slug = f"char_{_hl.md5(name.encode('utf-8')).hexdigest()[:8]}"
         avatar_file = avatars_dir / f"{slug}.png"
         if avatar_file.exists():
@@ -1932,7 +2049,9 @@ def _inject_character_context(prompt: dict, story_slug: str | None) -> None:
     if voice_refs:
         prompt["_voice_refs"] = voice_refs
         # Also store voice-character mapping for text prompt injection
-        voice_mapping = [f"{vr['name']}的声音=asset://{vr['url'].replace('asset://', '')}" for vr in voice_refs]
+        voice_mapping = [
+            f"{vr['name']}的声音=asset://{vr['url'].replace('asset://', '')}" for vr in voice_refs
+        ]
         prompt["_voice_mapping"] = voice_mapping
         log.info(f"  Injected {len(voice_refs)} character voice refs for audio generation")
 
@@ -2067,7 +2186,12 @@ def _inject_animation_style(prompt: dict) -> None:
 
 
 def _validate_and_regen(
-    output_path: Path, prompt: dict, model: str, quality: str, seed: int | None, local: bool,
+    output_path: Path,
+    prompt: dict,
+    model: str,
+    quality: str,
+    seed: int | None,
+    local: bool,
     scene_prompt_path: Path | None = None,
     story_slug: str | None = None,
 ) -> None:
@@ -2155,7 +2279,9 @@ def _validate_and_regen(
 def main():
     parser = argparse.ArgumentParser(description="Generate scene video")
     parser.add_argument("--scene", type=str, default=None, help="Path to scene prompt YAML")
-    parser.add_argument("--episode", type=int, default=None, help="Episode number (generates all scenes)")
+    parser.add_argument(
+        "--episode", type=int, default=None, help="Episode number (generates all scenes)"
+    )
     parser.add_argument("--story", type=str, default=None, help="Story slug")
     parser.add_argument("--model", type=str, default=None, help="Model override")
     parser.add_argument("--quality", type=str, default=None, help="Quality preset")
@@ -2218,6 +2344,7 @@ def main():
     # If --episode is given, find all scene prompts and process them
     if args.episode and not args.scene:
         from common import episode_dir
+
         ep_dir = episode_dir(args.episode, args.story)
         scenes_dir = ep_dir / "scenes"
 
@@ -2245,9 +2372,11 @@ def main():
             log.info("Video generation complete (no scene prompts found yet)")
             return
         import re
+
         def _natural_sort_key(p: Path) -> list:
             """Sort filenames naturally: scene_1 < scene_2 < scene_10."""
-            return [int(c) if c.isdigit() else c.lower() for c in re.split(r'(\d+)', p.name)]
+            return [int(c) if c.isdigit() else c.lower() for c in re.split(r"(\d+)", p.name)]
+
         prompts = sorted(scenes_dir.glob("*_prompt.yaml"), key=_natural_sort_key)
         if not prompts:
             log.info(f"No scene prompts found in {scenes_dir}")
@@ -2272,16 +2401,22 @@ def main():
         is_expensive_model = resolved in BYTEPLUS_MODELS or "seedance" in model.lower()
         if is_expensive_model:
             max_attempts = min(max_attempts, 1)  # Never auto-retry expensive models
-            log.info(f"Cost protection: max_attempts capped to {max_attempts} for expensive model {resolved}")
+            log.info(
+                f"Cost protection: max_attempts capped to {max_attempts} for expensive model {resolved}"
+            )
 
-        log.info(f"Generating {len(prompts)} clips (model={resolve_model_id(model)}, quality={quality})")
+        log.info(
+            f"Generating {len(prompts)} clips (model={resolve_model_id(model)}, quality={quality})"
+        )
         log.info(f"Clips output: {clips_run_dir}")
 
         prev_clip_path: Path | None = None
         prev_clip_description: str | None = None  # Carry forward for environment anchoring
         prev_clip_environment: str | None = None  # Carry location/setting for continuity
         prev_clip_action: str | None = None  # Carry last action/posture for continuity
-        prev_clip_transition_out: str | None = None  # Exact ending state for next clip's first frame
+        prev_clip_transition_out: str | None = (
+            None  # Exact ending state for next clip's first frame
+        )
         generated_count = 0
 
         # Stop file: checked between each clip to allow graceful termination
@@ -2317,9 +2452,15 @@ def main():
             # Cost protection: skip if clip already exists with reasonable file size
             min_clip_size = config.get("cost_protection", {}).get("min_clip_size_bytes", 50_000)
             if output_path.exists() and output_path.stat().st_size >= min_clip_size:
-                log.info(f"[{generated_count + 1}/{len(prompts)}] Skipping {output_name} — already exists ({output_path.stat().st_size / 1024:.0f} KB)")
+                log.info(
+                    f"[{generated_count + 1}/{len(prompts)}] Skipping {output_name} — already exists ({output_path.stat().st_size / 1024:.0f} KB)"
+                )
                 prev_clip_path = output_path
-                prev_clip_description = prompt_data.get("description") or prompt_data.get("prompt") or prompt_data.get("subject", "")
+                prev_clip_description = (
+                    prompt_data.get("description")
+                    or prompt_data.get("prompt")
+                    or prompt_data.get("subject", "")
+                )
                 prev_clip_environment = prompt_data.get("environment", "")
                 prev_clip_action = prompt_data.get("action", "")
                 prev_clip_transition_out = prompt_data.get("transition_out", "")
@@ -2331,7 +2472,9 @@ def main():
             if lock_file.exists():
                 lock_age = time.time() - lock_file.stat().st_mtime
                 if lock_age < 600:  # Lock valid for 10 minutes
-                    log.warning(f"[{generated_count + 1}/{len(prompts)}] Skipping {output_name} — generation in progress (lock age: {lock_age:.0f}s)")
+                    log.warning(
+                        f"[{generated_count + 1}/{len(prompts)}] Skipping {output_name} — generation in progress (lock age: {lock_age:.0f}s)"
+                    )
                     continue
                 else:
                     log.warning(f"  Stale lock file ({lock_age:.0f}s old), removing and proceeding")
@@ -2350,16 +2493,22 @@ def main():
                     if lf_url:
                         prompt_data["_last_frame_url"] = lf_url
                         prompt_data["_reference_mode"] = "image"
-                        log.info(f"  Continuity: using API last_frame_url from {prev_clip_path.name}")
+                        log.info(
+                            f"  Continuity: using API last_frame_url from {prev_clip_path.name}"
+                        )
                 else:
                     # Fallback: extract last frame locally with cv2
                     last_frame = extract_last_frame(prev_clip_path)
                     if last_frame and last_frame.exists():
                         prompt_data["reference_video"] = str(last_frame)
                         prompt_data["_reference_mode"] = "image"
-                        log.info(f"  Continuity: last frame extracted from {prev_clip_path.name} -> {last_frame.name}")
+                        log.info(
+                            f"  Continuity: last frame extracted from {prev_clip_path.name} -> {last_frame.name}"
+                        )
                     else:
-                        log.warning(f"  Continuity: failed to extract last frame from {prev_clip_path.name}")
+                        log.warning(
+                            f"  Continuity: failed to extract last frame from {prev_clip_path.name}"
+                        )
                 if prev_clip_description:
                     prompt_data["_prev_clip_description"] = prev_clip_description
                 if prev_clip_environment:
@@ -2368,7 +2517,9 @@ def main():
                     prompt_data["_prev_clip_action"] = prev_clip_action
                 if prev_clip_transition_out:
                     prompt_data["_prev_clip_transition_out"] = prev_clip_transition_out
-                log.info(f"  Continuity: referencing previous clip {prev_clip_path.name} ({prev_clip_path.stat().st_size / 1024:.0f} KB)")
+                log.info(
+                    f"  Continuity: referencing previous clip {prev_clip_path.name} ({prev_clip_path.stat().st_size / 1024:.0f} KB)"
+                )
             elif prev_clip_path:
                 log.warning(f"  Continuity skipped: {prev_clip_path.name} missing or too small")
 
@@ -2400,18 +2551,28 @@ def main():
             if not args.skip_validation and output_path.exists():
                 if is_expensive_model:
                     from validate_quality import load_qa_config, validate_clip
+
                     qa_config = load_qa_config()
                     qa_result = validate_clip(output_path, qa_config)
                     if qa_result["passed"]:
                         log.info("  Quality check PASSED")
                     else:
-                        log.warning("  Quality check FAILED (skipping auto-regen for expensive model):")
+                        log.warning(
+                            "  Quality check FAILED (skipping auto-regen for expensive model):"
+                        )
                         for issue in qa_result["issues"]:
                             log.warning(f"    - {issue}")
-                        log.warning("  Flagged for manual review — re-run generate_clips step to retry.")
+                        log.warning(
+                            "  Flagged for manual review — re-run generate_clips step to retry."
+                        )
                 else:
                     _validate_and_regen(
-                        output_path, prompt_data, model, quality, seed, args.local,
+                        output_path,
+                        prompt_data,
+                        model,
+                        quality,
+                        seed,
+                        args.local,
                         scene_prompt_path=prompt_path,
                         story_slug=args.story,
                     )
@@ -2419,7 +2580,11 @@ def main():
             lock_file.unlink(missing_ok=True)
 
             prev_clip_path = output_path
-            prev_clip_description = prompt_data.get("description") or prompt_data.get("prompt") or prompt_data.get("subject", "")
+            prev_clip_description = (
+                prompt_data.get("description")
+                or prompt_data.get("prompt")
+                or prompt_data.get("subject", "")
+            )
             prev_clip_environment = prompt_data.get("environment", "")
             prev_clip_action = prompt_data.get("action", "")
             prev_clip_transition_out = prompt_data.get("transition_out", "")

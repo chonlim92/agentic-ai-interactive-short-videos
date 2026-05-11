@@ -625,7 +625,6 @@ export default function AdminDashboard() {
                     <YAxis type="category" dataKey="step" tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 10 }} axisLine={false} tickLine={false} width={130} />
                     <Tooltip
                       {...tooltipStyle}
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       formatter={(value: any, _name: any, props: any) => [
                         `${value}s`,
                         props?.payload?.fullLabel ?? _name,

@@ -36,7 +36,6 @@ site/data/*.db
 site/node_modules/
 site/.next/
 site/out/
-site/package-lock.json
 
 # OS
 .DS_Store

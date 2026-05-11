@@ -13,12 +13,11 @@ Learns new skills automatically when agents encounter new task types.
 # Licensed under CC BY-NC 4.0. See LICENSE for details.
 
 import os
-import sys
 import re
+import sys
 from pathlib import Path
 
 import yaml
-
 from common import get_project_root, setup_logging
 
 log = setup_logging("llm")
@@ -45,7 +44,7 @@ def load_skills_registry() -> dict:
     if not SKILLS_REGISTRY_PATH.exists():
         return {}
     try:
-        with open(SKILLS_REGISTRY_PATH, "r", encoding="utf-8") as f:
+        with open(SKILLS_REGISTRY_PATH, encoding="utf-8") as f:
             data = yaml.safe_load(f) or {}
         return data
     except Exception:
@@ -75,7 +74,7 @@ def _detect_language(text: str) -> str:
     """Detect language of text: 'zh' for Chinese, 'en' otherwise."""
     if not text:
         return "en"
-    cjk_count = sum(1 for ch in text if '\u4e00' <= ch <= '\u9fff' or '\u3400' <= ch <= '\u4dbf')
+    cjk_count = sum(1 for ch in text if "\u4e00" <= ch <= "\u9fff" or "\u3400" <= ch <= "\u4dbf")
     total_alpha = sum(1 for ch in text if ch.isalpha())
     if total_alpha == 0:
         return "en"
@@ -97,7 +96,7 @@ def learn_new_skill(agent_name: str, task_summary: str, output_sample: str) -> s
     lang = _detect_language(output_sample)
 
     # Generate a skill name from the task summary (first 50 chars, slugified)
-    slug = re.sub(r'[^a-z0-9]+', '-', task_summary[:60].lower()).strip('-')
+    slug = re.sub(r"[^a-z0-9]+", "-", task_summary[:60].lower()).strip("-")
     if not slug:
         slug = f"{agent_name}-learned"
     skill_name = f"{agent_name}-{slug}"
@@ -192,7 +191,9 @@ def _equip_agent_with_skill(agent_name: str, skill_name: str) -> None:
         existing_skills.append(skill_name)
         frontmatter["skills"] = existing_skills
 
-        new_frontmatter = yaml.dump(frontmatter, default_flow_style=False, allow_unicode=True).strip()
+        new_frontmatter = yaml.dump(
+            frontmatter, default_flow_style=False, allow_unicode=True
+        ).strip()
         new_content = f"---\n{new_frontmatter}\n---{body}"
         agent_path.write_text(new_content, encoding="utf-8")
         log.info(f"Equipped {agent_name}.agent.md with skill: {skill_name}")
@@ -275,7 +276,9 @@ def build_system_prompt(agent_name: str) -> str:
             if skill_content:
                 skill_texts.append(f"### Skill: {skill_name}\n{skill_content}")
         if skill_texts:
-            parts.append(f"# Available Skills (follow these procedures)\n\n" + "\n\n".join(skill_texts))
+            parts.append(
+                f"# Available Skills (follow these procedures)\n\n" + "\n\n".join(skill_texts)
+            )
 
     # 3. Project rules (pipeline, video specs, quality requirements)
     project_rules = load_project_rules()
@@ -290,7 +293,9 @@ def build_system_prompt(agent_name: str) -> str:
     return "\n\n---\n\n".join(parts)
 
 
-def call_llm(system_prompt: str, user_message: str, max_tokens: int = 8000, model_override: str | None = None) -> str:
+def call_llm(
+    system_prompt: str, user_message: str, max_tokens: int = 8000, model_override: str | None = None
+) -> str:
     """Call the configured LLM provider and return raw text response.
 
     Uses LLM_PROVIDER env var to select backend (anthropic, openai, or huggingface).
@@ -356,8 +361,9 @@ def call_llm(system_prompt: str, user_message: str, max_tokens: int = 8000, mode
 
 def _call_huggingface(system_prompt: str, user_message: str, model: str, max_tokens: int) -> str:
     """Call HuggingFace Inference API with streaming to show progress."""
-    import requests
     import json as _json
+
+    import requests
 
     api_token = os.environ.get("HUGGINGFACE_API_TOKEN", "")
     # HuggingFace Router API (OpenAI-compatible endpoint)
@@ -443,7 +449,9 @@ def _call_huggingface(system_prompt: str, user_message: str, model: str, max_tok
     return "".join(collected).strip()
 
 
-def call_agent(agent_name: str, user_message: str, max_tokens: int = 8000, model_override: str | None = None) -> str:
+def call_agent(
+    agent_name: str, user_message: str, max_tokens: int = 8000, model_override: str | None = None
+) -> str:
     """Call an LLM using a named agent's full context as the system prompt.
 
     Includes: agent .agent.md instructions + relevant skills + project rules + content policy.
@@ -482,6 +490,7 @@ def call_agent(agent_name: str, user_message: str, max_tokens: int = 8000, model
             parsed = parse_yaml_response(raw_response)
             # Valid output — learn this as a new skill
             import yaml as _yaml
+
             output_sample = _yaml.dump(parsed, default_flow_style=False, allow_unicode=True)
             skill_name = learn_new_skill(agent_name, first_line, output_sample)
             if skill_name:
@@ -503,6 +512,7 @@ def parse_yaml_response(raw_text: str) -> dict:
         ValueError: If parsing fails.
     """
     import re
+
     import yaml
 
     text = raw_text.strip()
@@ -526,7 +536,7 @@ def parse_yaml_response(raw_text: str) -> dict:
         for i, line in enumerate(lines):
             stripped = line.strip()
             # A valid YAML start: top-level key (word:) or list item (- )
-            if re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*\s*:', stripped) or stripped.startswith('- '):
+            if re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*\s*:", stripped) or stripped.startswith("- "):
                 start_idx = i
                 break
         if start_idx > 0:
@@ -593,15 +603,19 @@ def call_vlm(
             if ext == "jpg":
                 ext = "jpeg"
             b64 = base64.b64encode(img_path.read_bytes()).decode("utf-8")
-            content.append({
-                "type": "image_url",
-                "image_url": {"url": f"data:image/{ext};base64,{b64}", "detail": "low"},
-            })
+            content.append(
+                {
+                    "type": "image_url",
+                    "image_url": {"url": f"data:image/{ext};base64,{b64}", "detail": "low"},
+                }
+            )
         elif str(img).startswith("data:"):
-            content.append({
-                "type": "image_url",
-                "image_url": {"url": str(img), "detail": "low"},
-            })
+            content.append(
+                {
+                    "type": "image_url",
+                    "image_url": {"url": str(img), "detail": "low"},
+                }
+            )
 
     # Add text prompt
     content.append({"type": "text", "text": user_text})
@@ -638,20 +652,25 @@ def _repair_yaml(text: str) -> str:
     for line in lines:
         # Match lines like:  key: value (where value contains unquoted special chars)
         # Only fix value lines (not keys that start list items or nested dicts)
-        m = re.match(r'^(\s*(?:-\s+)?[a-zA-Z_][a-zA-Z0-9_]*:\s*)(.+)$', line)
+        m = re.match(r"^(\s*(?:-\s+)?[a-zA-Z_][a-zA-Z0-9_]*:\s*)(.+)$", line)
         if m:
             prefix, value = m.group(1), m.group(2)
             # Skip if already quoted, is a number, bool, null, or starts a nested structure
             stripped_val = value.strip()
-            if (stripped_val.startswith('"') or stripped_val.startswith("'") or
-                stripped_val.startswith('[') or stripped_val.startswith('{') or
-                stripped_val in ('true', 'false', 'null', 'yes', 'no', '~', '') or
-                re.match(r'^-?\d+(\.\d+)?$', stripped_val) or
-                stripped_val.startswith('|') or stripped_val.startswith('>')):
+            if (
+                stripped_val.startswith('"')
+                or stripped_val.startswith("'")
+                or stripped_val.startswith("[")
+                or stripped_val.startswith("{")
+                or stripped_val in ("true", "false", "null", "yes", "no", "~", "")
+                or re.match(r"^-?\d+(\.\d+)?$", stripped_val)
+                or stripped_val.startswith("|")
+                or stripped_val.startswith(">")
+            ):
                 fixed_lines.append(line)
             else:
                 # Quote the value to avoid YAML parsing issues
-                escaped = stripped_val.replace('\\', '\\\\').replace('"', '\\"')
+                escaped = stripped_val.replace("\\", "\\\\").replace('"', '\\"')
                 fixed_lines.append(f'{prefix}"{escaped}"')
         else:
             fixed_lines.append(line)

@@ -3,9 +3,9 @@
 import { useLocale } from "@/lib/useLocale";
 
 interface EpisodeVideoPlayerProps {
-  videoUrl: string | null;
-  videoUrlEn: string | null;
-  posterUrl: string | undefined;
+  videoUrl?: string | null;
+  videoUrlEn?: string | null;
+  posterUrl?: string;
 }
 
 export function EpisodeVideoPlayer({ videoUrl, videoUrlEn, posterUrl }: EpisodeVideoPlayerProps) {

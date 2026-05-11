@@ -37,7 +37,7 @@ export async function PATCH(
 
   await updateEpisode(id, updates);
 
-  if (voting_open === false) {
+  if (body.voting_open === false) {
     await closeVoting(id);
   }
 

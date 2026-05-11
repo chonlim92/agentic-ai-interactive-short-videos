@@ -27,7 +27,6 @@ import sys
 from pathlib import Path
 
 import yaml
-
 from common import (
     config_path,
     episode_dir,
@@ -154,10 +153,18 @@ def list_assets(ep_dir: Path) -> dict:
         try:
             probe = subprocess.run(
                 [
-                    "ffprobe", "-v", "quiet", "-show_entries",
-                    "format=duration", "-of", "csv=p=0", str(clip_path),
+                    "ffprobe",
+                    "-v",
+                    "quiet",
+                    "-show_entries",
+                    "format=duration",
+                    "-of",
+                    "csv=p=0",
+                    str(clip_path),
                 ],
-                capture_output=True, text=True, timeout=50,
+                capture_output=True,
+                text=True,
+                timeout=50,
             )
             if probe.returncode == 0 and probe.stdout.strip():
                 info["duration_seconds"] = round(float(probe.stdout.strip()), 2)
@@ -168,12 +175,14 @@ def list_assets(ep_dir: Path) -> dict:
 
     audio_info = []
     for af in audio_files:
-        audio_info.append({
-            "name": af.name,
-            "path": str(af),
-            "size_kb": round(af.stat().st_size / 1024, 1),
-            "selected": True,
-        })
+        audio_info.append(
+            {
+                "name": af.name,
+                "path": str(af),
+                "size_kb": round(af.stat().st_size / 1024, 1),
+                "selected": True,
+            }
+        )
 
     return {"clips": clip_info, "audio": audio_info}
 
@@ -186,6 +195,7 @@ def list_assets(ep_dir: Path) -> dict:
 def _detect_content_language(text: str) -> str:
     """Detect primary language of text. Delegates to common.detect_content_language."""
     from common import detect_content_language
+
     return detect_content_language(text)
 
 
@@ -205,11 +215,19 @@ def _extract_first_frame(clip_path: Path) -> Path | None:
     """Extract the first frame from a video clip as a JPEG image."""
     out_path = clip_path.parent / f"{clip_path.stem}_first_frame.jpg"
     cmd = [
-        "ffmpeg", "-y", "-i", str(clip_path),
-        "-frames:v", "1", "-q:v", "2",
+        "ffmpeg",
+        "-y",
+        "-i",
+        str(clip_path),
+        "-frames:v",
+        "1",
+        "-q:v",
+        "2",
         str(out_path),
     ]
-    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600)
+    result = subprocess.run(
+        cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600
+    )
     if result.returncode == 0 and out_path.exists():
         return out_path
     return None
@@ -233,8 +251,18 @@ def _generate_opening_ffmpeg(
     # Get video dimensions from first frame
     try:
         probe = subprocess.run(
-            ["ffprobe", "-v", "quiet", "-print_format", "json", "-show_streams", str(first_frame_path)],
-            capture_output=True, text=True, timeout=100,
+            [
+                "ffprobe",
+                "-v",
+                "quiet",
+                "-print_format",
+                "json",
+                "-show_streams",
+                str(first_frame_path),
+            ],
+            capture_output=True,
+            text=True,
+            timeout=100,
         )
         probe_data = json.loads(probe.stdout)
         stream = next(s for s in probe_data["streams"] if s["codec_type"] == "video")
@@ -244,10 +272,10 @@ def _generate_opening_ffmpeg(
 
     # Find a CJK-compatible font (try common locations)
     font_candidates = [
-        "C:/Windows/Fonts/msyh.ttc",          # Microsoft YaHei (Windows)
-        "C:/Windows/Fonts/msyhbd.ttc",         # Microsoft YaHei Bold (Windows)
-        "C:/Windows/Fonts/simhei.ttf",         # SimHei (Windows)
-        "C:/Windows/Fonts/simsun.ttc",         # SimSun (Windows)
+        "C:/Windows/Fonts/msyh.ttc",  # Microsoft YaHei (Windows)
+        "C:/Windows/Fonts/msyhbd.ttc",  # Microsoft YaHei Bold (Windows)
+        "C:/Windows/Fonts/simhei.ttf",  # SimHei (Windows)
+        "C:/Windows/Fonts/simsun.ttc",  # SimSun (Windows)
         "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",  # Linux
         "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
         "/System/Library/Fonts/PingFang.ttc",  # macOS
@@ -261,8 +289,7 @@ def _generate_opening_ffmpeg(
     # Escape text for ffmpeg drawtext filter
     def _esc(text: str) -> str:
         return (
-            text
-            .replace("\\", "\\\\")
+            text.replace("\\", "\\\\")
             .replace(":", "\\:")
             .replace("'", "'\\\\''")
             .replace("%", "%%")
@@ -272,11 +299,18 @@ def _generate_opening_ffmpeg(
 
     # Dynamic font sizing: estimate character width and scale to fit within 85% of video width
     max_text_width = vid_w * 0.85
+
     # CJK chars are roughly square; Latin chars ~0.55 width ratio to font size
     def _estimate_text_px_width(text: str, font_size: int) -> float:
         """Estimate pixel width of text at a given font size."""
-        cjk_count = sum(1 for c in text if '\u4e00' <= c <= '\u9fff' or '\u3400' <= c <= '\u4dbf'
-                        or '\uf900' <= c <= '\ufaff' or '\U00020000' <= c <= '\U0002a6df')
+        cjk_count = sum(
+            1
+            for c in text
+            if "\u4e00" <= c <= "\u9fff"
+            or "\u3400" <= c <= "\u4dbf"
+            or "\uf900" <= c <= "\ufaff"
+            or "\U00020000" <= c <= "\U0002a6df"
+        )
         latin_count = len(text) - cjk_count
         return cjk_count * font_size + latin_count * font_size * 0.55
 
@@ -341,7 +375,11 @@ def _generate_opening_ffmpeg(
 
     # Episode title: fit independently, but cap at story_size - step
     ep_size_cap = max(story_size - 4, ep_max_size - 8, 16)
-    ep_size = _fit_font_size(episode_title, min(ep_max_size, ep_size_cap)) if episode_title else ep_max_size
+    ep_size = (
+        _fit_font_size(episode_title, min(ep_max_size, ep_size_cap))
+        if episode_title
+        else ep_max_size
+    )
     # Ensure episode font is strictly smaller than story font
     if ep_size >= story_size:
         ep_size = max(story_size - 4, 16)
@@ -377,7 +415,9 @@ def _generate_opening_ffmpeg(
 
     # Story name lines — centered, stacked above vertical center
     story_line_gap = int(vid_h * 0.005)
-    total_story_height = len(story_lines) * story_size + max(0, len(story_lines) - 1) * story_line_gap
+    total_story_height = (
+        len(story_lines) * story_size + max(0, len(story_lines) - 1) * story_line_gap
+    )
     story_start_y = vid_h // 2 - int(vid_h * 0.08) - total_story_height
     for i, line in enumerate(story_lines):
         line_esc = _esc(line)
@@ -413,24 +453,39 @@ def _generate_opening_ffmpeg(
     )
 
     cmd = [
-        "ffmpeg", "-y",
-        "-i", str(first_frame_path),
-        "-vf", vf,
-        "-t", str(duration),
-        "-c:v", "libx264",
-        "-pix_fmt", "yuv420p",
-        "-color_range", "tv", "-colorspace", "bt709", "-color_trc", "bt709", "-color_primaries", "bt709",
+        "ffmpeg",
+        "-y",
+        "-i",
+        str(first_frame_path),
+        "-vf",
+        vf,
+        "-t",
+        str(duration),
+        "-c:v",
+        "libx264",
+        "-pix_fmt",
+        "yuv420p",
+        "-color_range",
+        "tv",
+        "-colorspace",
+        "bt709",
+        "-color_trc",
+        "bt709",
+        "-color_primaries",
+        "bt709",
         "-an",
         str(output_path),
     ]
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600)
+    result = subprocess.run(
+        cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600
+    )
     if result.returncode == 0 and output_path.exists():
         log.info(f"  FFmpeg opening clip saved: {output_path}")
         return output_path
     else:
-        stderr_msg = (result.stderr or "")
+        stderr_msg = result.stderr or ""
         log.warning(f"  FFmpeg opening generation failed: {stderr_msg[-500:]}")
         return None
 
@@ -461,17 +516,14 @@ def generate_episode_opening(
         story = fetch_story_from_api(story_slug) if story_slug else None
         if story:
             story_name = (
-                story.get("title_zh")
-                or story.get("title", "")
-            ) if content_lang == "zh" else (
-                story.get("title")
-                or story.get("title_zh", "")
+                (story.get("title_zh") or story.get("title", ""))
+                if content_lang == "zh"
+                else (story.get("title") or story.get("title_zh", ""))
             )
 
         # Fallback: read from script.yaml (has title / title_zh at root)
         if not story_name and story_slug:
             try:
-                from common import episode_dir as _ep_dir
                 # Try to find any episode script with the story title
                 stories_dir = get_project_root() / "data" / "stories" / story_slug
                 # Look for the latest episode script
@@ -480,11 +532,9 @@ def generate_episode_opening(
                     script_data = yaml.safe_load(ep_dirs[-1].read_text(encoding="utf-8"))
                     if script_data:
                         story_name = (
-                            script_data.get("title_zh")
-                            or script_data.get("title", "")
-                        ) if content_lang == "zh" else (
-                            script_data.get("title")
-                            or script_data.get("title_zh", "")
+                            (script_data.get("title_zh") or script_data.get("title", ""))
+                            if content_lang == "zh"
+                            else (script_data.get("title") or script_data.get("title_zh", ""))
                         )
             except Exception:
                 pass
@@ -495,7 +545,9 @@ def generate_episode_opening(
     # AI disclaimer
     disclaimer_text = "AI生成" if content_lang == "zh" else "AI Generated"
 
-    log.info(f"Generating episode opening (2s): '{story_name}' | '{episode_title}' | '{disclaimer_text}'")
+    log.info(
+        f"Generating episode opening (2s): '{story_name}' | '{episode_title}' | '{disclaimer_text}'"
+    )
     first_frame = _extract_first_frame(first_clip)
     if not first_frame:
         log.warning("  Could not extract first frame. Skipping opening.")
@@ -505,7 +557,11 @@ def generate_episode_opening(
 
     # Generate opening with ffmpeg text overlay on first frame
     opening = _generate_opening_ffmpeg(
-        first_frame, story_name, episode_title, disclaimer_text, output_path,
+        first_frame,
+        story_name,
+        episode_title,
+        disclaimer_text,
+        output_path,
     )
     first_frame.unlink(missing_ok=True)
     return opening
@@ -525,22 +581,43 @@ def _probe_clip(clip_path: Path) -> dict:
     """Probe a clip for resolution, duration, and audio stream presence."""
     try:
         probe = subprocess.run(
-            ["ffprobe", "-v", "quiet", "-print_format", "json",
-             "-show_streams", "-show_format", str(clip_path)],
-            capture_output=True, text=True, timeout=300,
+            [
+                "ffprobe",
+                "-v",
+                "quiet",
+                "-print_format",
+                "json",
+                "-show_streams",
+                "-show_format",
+                str(clip_path),
+            ],
+            capture_output=True,
+            text=True,
+            timeout=300,
         )
         data = json.loads(probe.stdout)
-        video_stream = next((s for s in data.get("streams", []) if s["codec_type"] == "video"), None)
-        audio_stream = next((s for s in data.get("streams", []) if s["codec_type"] == "audio"), None)
+        video_stream = next(
+            (s for s in data.get("streams", []) if s["codec_type"] == "video"), None
+        )
+        audio_stream = next(
+            (s for s in data.get("streams", []) if s["codec_type"] == "audio"), None
+        )
         w = int(video_stream["width"]) if video_stream else 0
         h = int(video_stream["height"]) if video_stream else 0
         duration = float(data.get("format", {}).get("duration", 0))
-        return {"width": w, "height": h, "has_audio": audio_stream is not None, "duration": duration}
+        return {
+            "width": w,
+            "height": h,
+            "has_audio": audio_stream is not None,
+            "duration": duration,
+        }
     except Exception:
         return {"width": 0, "height": 0, "has_audio": False, "duration": 0}
 
 
-def _preprocess_clips(clips: list[Path], mute_video_audio: bool = False) -> tuple[list[Path], list[Path], tuple[int, int], bool]:
+def _preprocess_clips(
+    clips: list[Path], mute_video_audio: bool = False
+) -> tuple[list[Path], list[Path], tuple[int, int], bool]:
     """Prepare clips for concatenation: add silent audio to opening if needed.
 
     Does NOT resize clips — that happens in the concat filter only if needed.
@@ -554,12 +631,17 @@ def _preprocess_clips(clips: list[Path], mute_video_audio: bool = False) -> tupl
     probes = [(clip, _probe_clip(clip)) for clip in clips]
     log.info("  Clip dimensions:")
     for clip, info in probes:
-        log.info(f"    {clip.name}: {info['width']}x{info['height']}"
-                 f" ({info['duration']:.1f}s, audio: {'yes' if info['has_audio'] else 'no'})")
+        log.info(
+            f"    {clip.name}: {info['width']}x{info['height']}"
+            f" ({info['duration']:.1f}s, audio: {'yes' if info['has_audio'] else 'no'})"
+        )
 
     # Find minimum width and height among scene clips (skip opening)
-    scene_dims = [(info["width"], info["height"]) for clip, info in probes
-                  if info["width"] > 0 and "_opening" not in clip.name]
+    scene_dims = [
+        (info["width"], info["height"])
+        for clip, info in probes
+        if info["width"] > 0 and "_opening" not in clip.name
+    ]
     if scene_dims:
         min_w = min(w for w, _ in scene_dims)
         min_h = min(h for _, h in scene_dims)
@@ -575,7 +657,8 @@ def _preprocess_clips(clips: list[Path], mute_video_audio: bool = False) -> tupl
     # Check if all clips already have the same dimensions
     all_same_dims = all(
         info["width"] == min_w and info["height"] == min_h
-        for _, info in probes if info["width"] > 0
+        for _, info in probes
+        if info["width"] > 0
     )
     log.info(f"  Min dimensions: {min_w}x{min_h}, all same: {all_same_dims}")
 
@@ -590,17 +673,31 @@ def _preprocess_clips(clips: list[Path], mute_video_audio: bool = False) -> tupl
             # Only preprocess opening clips that need a silent audio track added
             temp_out = clip.parent / f"_prep_{clip.name}"
             cmd = [
-                "ffmpeg", "-y",
-                "-i", str(clip),
-                "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo",
-                "-map", "0:v:0", "-map", "1:a:0",
-                "-c:v", "copy", "-c:a", "aac",
+                "ffmpeg",
+                "-y",
+                "-i",
+                str(clip),
+                "-f",
+                "lavfi",
+                "-i",
+                "anullsrc=r=44100:cl=stereo",
+                "-map",
+                "0:v:0",
+                "-map",
+                "1:a:0",
+                "-c:v",
+                "copy",
+                "-c:a",
+                "aac",
                 "-shortest",
-                "-movflags", "+faststart",
+                "-movflags",
+                "+faststart",
                 str(temp_out),
             ]
             log.info(f"  Adding silent audio to {clip.name}")
-            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600)
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600
+            )
             if result.returncode == 0 and temp_out.exists():
                 processed.append(temp_out)
                 temp_files.append(temp_out)
@@ -638,22 +735,44 @@ def _compute_geometry_corrections(clips: list[Path], tmp_dir: Path) -> list[tupl
     for i in range(len(clips) - 1):
         # Extract last frame of clip[i] and first frame of clip[i+1]
         last_f = tmp_dir / f"_geom_last_{i}.png"
-        first_f = tmp_dir / f"_geom_first_{i+1}.png"
+        first_f = tmp_dir / f"_geom_first_{i + 1}.png"
 
         try:
             # Last frame: seek near end
             info = _probe_clip(clips[i])
             seek_t = max(0, info.get("duration", 10.0) - 0.1)
             subprocess.run(
-                ["ffmpeg", "-y", "-ss", str(seek_t), "-i", str(clips[i]),
-                 "-frames:v", "1", "-update", "1", str(last_f)],
-                capture_output=True, timeout=300,
+                [
+                    "ffmpeg",
+                    "-y",
+                    "-ss",
+                    str(seek_t),
+                    "-i",
+                    str(clips[i]),
+                    "-frames:v",
+                    "1",
+                    "-update",
+                    "1",
+                    str(last_f),
+                ],
+                capture_output=True,
+                timeout=300,
             )
             # First frame of next clip
             subprocess.run(
-                ["ffmpeg", "-y", "-i", str(clips[i + 1]),
-                 "-frames:v", "1", "-update", "1", str(first_f)],
-                capture_output=True, timeout=300,
+                [
+                    "ffmpeg",
+                    "-y",
+                    "-i",
+                    str(clips[i + 1]),
+                    "-frames:v",
+                    "1",
+                    "-update",
+                    "1",
+                    str(first_f),
+                ],
+                capture_output=True,
+                timeout=300,
             )
 
             if not last_f.exists() or not first_f.exists():
@@ -697,8 +816,10 @@ def _compute_geometry_corrections(clips: list[Path], tmp_dir: Path) -> list[tupl
 
             # Only apply if the correction is reasonable (< 10% per step)
             if abs(sx - 1.0) > 0.10 or abs(sy - 1.0) > 0.10:
-                log.warning(f"  Clip {i}->{i+1}: geometry correction too large "
-                            f"(sx={sx:.4f}, sy={sy:.4f}), skipping")
+                log.warning(
+                    f"  Clip {i}->{i + 1}: geometry correction too large "
+                    f"(sx={sx:.4f}, sy={sy:.4f}), skipping"
+                )
                 corrections.append((cumulative_sx, cumulative_sy))
                 continue
 
@@ -709,12 +830,14 @@ def _compute_geometry_corrections(clips: list[Path], tmp_dir: Path) -> list[tupl
             cumulative_sx = max(0.85, min(1.15, cumulative_sx))
             cumulative_sy = max(0.85, min(1.15, cumulative_sy))
 
-            log.info(f"  Clip {i}->{i+1}: scale correction sx={sx:.4f}, sy={sy:.4f} "
-                     f"(cumulative: {cumulative_sx:.4f}, {cumulative_sy:.4f})")
+            log.info(
+                f"  Clip {i}->{i + 1}: scale correction sx={sx:.4f}, sy={sy:.4f} "
+                f"(cumulative: {cumulative_sx:.4f}, {cumulative_sy:.4f})"
+            )
             corrections.append((cumulative_sx, cumulative_sy))
 
         except Exception as e:
-            log.warning(f"  Clip {i}->{i+1}: geometry detection failed: {e}")
+            log.warning(f"  Clip {i}->{i + 1}: geometry detection failed: {e}")
             corrections.append((cumulative_sx, cumulative_sy))
         finally:
             last_f.unlink(missing_ok=True)
@@ -752,7 +875,9 @@ def compose_clips(
 
     # Step 0: Probe clips and prepare (add silent audio to opening only)
     log.info("Preparing clips for concatenation...")
-    processed_clips, temp_files, (min_w, min_h), all_same_dims = _preprocess_clips(clips, mute_video_audio)
+    processed_clips, temp_files, (min_w, min_h), all_same_dims = _preprocess_clips(
+        clips, mute_video_audio
+    )
 
     target_fps = int(os.environ.get("VIDEO_FPS", "24"))
 
@@ -783,10 +908,12 @@ def compose_clips(
         if i > 0:
             vf_parts.append("trim=start_frame=1,setpts=PTS-STARTPTS")
         if not all_same_dims:
-            vf_parts.extend([
-                f"scale={min_w}:{min_h}:force_original_aspect_ratio=decrease",
-                f"pad={min_w}:{min_h}:(ow-iw)/2:(oh-ih)/2",
-            ])
+            vf_parts.extend(
+                [
+                    f"scale={min_w}:{min_h}:force_original_aspect_ratio=decrease",
+                    f"pad={min_w}:{min_h}:(ow-iw)/2:(oh-ih)/2",
+                ]
+            )
 
         # Apply geometry correction: scale up then crop back to target size
         sx, sy = geom_corrections[i]
@@ -806,7 +933,9 @@ def compose_clips(
 
         if not mute_video_audio:
             if i > 0:
-                filter_lines.append(f"[{i}:a]atrim=start={frame_dur:.6f},asetpts=PTS-STARTPTS[a{i}]")
+                filter_lines.append(
+                    f"[{i}:a]atrim=start={frame_dur:.6f},asetpts=PTS-STARTPTS[a{i}]"
+                )
             else:
                 filter_lines.append(f"[{i}:a]anull[a{i}]")
 
@@ -865,15 +994,33 @@ def compose_clips(
     else:
         cmd.extend(["-filter_complex", filter_complex, "-map", "[vout]", "-map", "[aout]"])
 
-    cmd.extend(["-c:v", "libx264", "-preset", "fast", "-pix_fmt", "yuv420p",
-                "-color_range", "tv", "-colorspace", "bt709", "-color_trc", "bt709", "-color_primaries", "bt709"])
+    cmd.extend(
+        [
+            "-c:v",
+            "libx264",
+            "-preset",
+            "fast",
+            "-pix_fmt",
+            "yuv420p",
+            "-color_range",
+            "tv",
+            "-colorspace",
+            "bt709",
+            "-color_trc",
+            "bt709",
+            "-color_primaries",
+            "bt709",
+        ]
+    )
     if not mute_video_audio:
         cmd.extend(["-c:a", "aac", "-b:a", "192k"])
     cmd.extend(["-movflags", "+faststart", str(concat_output)])
 
     log.info(f"Concatenating {n} clips (concat filter, skipping duplicate first frames)...")
     log.info(f"  Output resolution: {min_w}x{min_h}, scale needed: {not all_same_dims}")
-    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600)
+    result = subprocess.run(
+        cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600
+    )
 
     if result.returncode != 0:
         log.error(f"ffmpeg concat failed: {(result.stderr or '')[:500]}")
@@ -892,32 +1039,65 @@ def compose_clips(
         n_audio = len(audio_files)
         if mute_video_audio:
             if n_audio == 1:
-                cmd_audio.extend([
-                    "-c:v", "copy", "-c:a", "aac",
-                    "-map", "0:v:0", "-map", "1:a:0",
-                    "-shortest", str(audio_output),
-                ])
+                cmd_audio.extend(
+                    [
+                        "-c:v",
+                        "copy",
+                        "-c:a",
+                        "aac",
+                        "-map",
+                        "0:v:0",
+                        "-map",
+                        "1:a:0",
+                        "-shortest",
+                        str(audio_output),
+                    ]
+                )
             else:
                 filter_parts = [f"[{i + 1}:a]" for i in range(n_audio)]
-                filter_complex = "".join(filter_parts) + f"amix=inputs={n_audio}:duration=longest[aout]"
-                cmd_audio.extend([
-                    "-filter_complex", filter_complex,
-                    "-c:v", "copy", "-map", "0:v:0", "-map", "[aout]",
-                    "-shortest", str(audio_output),
-                ])
+                filter_complex = (
+                    "".join(filter_parts) + f"amix=inputs={n_audio}:duration=longest[aout]"
+                )
+                cmd_audio.extend(
+                    [
+                        "-filter_complex",
+                        filter_complex,
+                        "-c:v",
+                        "copy",
+                        "-map",
+                        "0:v:0",
+                        "-map",
+                        "[aout]",
+                        "-shortest",
+                        str(audio_output),
+                    ]
+                )
         else:
             filter_parts = ["[0:a]"] + [f"[{i + 1}:a]" for i in range(n_audio)]
-            filter_complex = "".join(filter_parts) + f"amix=inputs={n_audio + 1}:duration=longest[aout]"
-            cmd_audio.extend([
-                "-filter_complex", filter_complex,
-                "-c:v", "copy", "-map", "0:v:0", "-map", "[aout]",
-                "-shortest", str(audio_output),
-            ])
+            filter_complex = (
+                "".join(filter_parts) + f"amix=inputs={n_audio + 1}:duration=longest[aout]"
+            )
+            cmd_audio.extend(
+                [
+                    "-filter_complex",
+                    filter_complex,
+                    "-c:v",
+                    "copy",
+                    "-map",
+                    "0:v:0",
+                    "-map",
+                    "[aout]",
+                    "-shortest",
+                    str(audio_output),
+                ]
+            )
 
         log.info(f"Overlaying {n_audio} audio file(s)...")
         result = subprocess.run(cmd_audio, capture_output=True, text=True, timeout=300)
         if result.returncode != 0:
-            log.warning(f"Audio overlay failed: {result.stderr[:300]}. Using video without overlay.")
+            log.warning(
+                f"Audio overlay failed: {result.stderr[:300]}. Using video without overlay."
+            )
             audio_output = concat_output
         else:
             concat_output.unlink(missing_ok=True)
@@ -934,7 +1114,9 @@ def compose_clips(
         f.unlink(missing_ok=True)
 
     crop_dims = (min_w, min_h)
-    log.info(f"Composed video: {output_path} ({output_path.stat().st_size / 1024 / 1024:.1f} MB) — {min_w}x{min_h}")
+    log.info(
+        f"Composed video: {output_path} ({output_path.stat().st_size / 1024 / 1024:.1f} MB) — {min_w}x{min_h}"
+    )
     return output_path, crop_dims
 
 
@@ -964,10 +1146,18 @@ def add_watermark(
     try:
         probe = subprocess.run(
             [
-                "ffprobe", "-v", "quiet", "-print_format", "json",
-                "-show_streams", "-show_format", str(video_path),
+                "ffprobe",
+                "-v",
+                "quiet",
+                "-print_format",
+                "json",
+                "-show_streams",
+                "-show_format",
+                str(video_path),
             ],
-            capture_output=True, text=True, timeout=300,
+            capture_output=True,
+            text=True,
+            timeout=300,
         )
         probe_data = json.loads(probe.stdout)
         duration = float(probe_data["format"]["duration"])
@@ -995,39 +1185,53 @@ def add_watermark(
             x = random.randint(margin, int(vid_w * 0.25))
             y = random.randint(margin, int(vid_h * 0.2))
         elif quadrant == "tr":
-            x = random.randint(int(vid_w * 0.65), max(int(vid_w * 0.65) + 1, vid_w - logo_w - margin))
+            x = random.randint(
+                int(vid_w * 0.65), max(int(vid_w * 0.65) + 1, vid_w - logo_w - margin)
+            )
             y = random.randint(margin, int(vid_h * 0.2))
         elif quadrant == "bl":
             x = random.randint(margin, int(vid_w * 0.25))
-            y = random.randint(int(vid_h * 0.75), max(int(vid_h * 0.75) + 1, vid_h - logo_h - margin))
+            y = random.randint(
+                int(vid_h * 0.75), max(int(vid_h * 0.75) + 1, vid_h - logo_h - margin)
+            )
         else:  # br
-            x = random.randint(int(vid_w * 0.65), max(int(vid_w * 0.65) + 1, vid_w - logo_w - margin))
-            y = random.randint(int(vid_h * 0.75), max(int(vid_h * 0.75) + 1, vid_h - logo_h - margin))
+            x = random.randint(
+                int(vid_w * 0.65), max(int(vid_w * 0.65) + 1, vid_w - logo_w - margin)
+            )
+            y = random.randint(
+                int(vid_h * 0.75), max(int(vid_h * 0.75) + 1, vid_h - logo_h - margin)
+            )
 
         # Clamp to valid range
         x = max(margin, min(x, vid_w - logo_w - margin))
         y = max(margin, min(y, vid_h - logo_h - margin))
 
-        appearances.append({
-            "start": round(t, 2),
-            "end": round(min(t + show_duration, duration), 2),
-            "x": x,
-            "y": y,
-        })
+        appearances.append(
+            {
+                "start": round(t, 2),
+                "end": round(min(t + show_duration, duration), 2),
+                "x": x,
+                "y": y,
+            }
+        )
         t += show_duration + random.uniform(15, 25)
 
     if not appearances:
         # Very short video — add one appearance
-        appearances.append({
-            "start": 1.0,
-            "end": min(3.0, duration - 0.5),
-            "x": int(vid_w * 0.7),
-            "y": int(vid_h * 0.05),
-        })
+        appearances.append(
+            {
+                "start": 1.0,
+                "end": min(3.0, duration - 0.5),
+                "x": int(vid_w * 0.7),
+                "y": int(vid_h * 0.05),
+            }
+        )
 
     log.info(f"Adding {len(appearances)} watermark appearance(s) to video")
     for i, a in enumerate(appearances):
-        log.info(f"  Watermark #{i+1} placed at {a['start']:.1f}s to {a['end']:.1f}s of the video")
+        log.info(
+            f"  Watermark #{i + 1} placed at {a['start']:.1f}s to {a['end']:.1f}s of the video"
+        )
 
     # Build ffmpeg overlay filter with enable expressions
     # For multiple appearances at different positions, chain overlay filters
@@ -1047,22 +1251,42 @@ def add_watermark(
     filter_complex = ";".join(filter_parts)
 
     cmd = [
-        "ffmpeg", "-y",
-        "-i", str(video_path),
-        "-i", str(logo_path),
-        "-filter_complex", filter_complex,
-        "-map", "[vout]",
-        "-map", "0:a?",
-        "-c:v", "libx264",
-        "-color_range", "tv", "-colorspace", "bt709", "-color_trc", "bt709", "-color_primaries", "bt709",
-        "-c:a", "copy",
-        "-movflags", "+faststart",
+        "ffmpeg",
+        "-y",
+        "-i",
+        str(video_path),
+        "-i",
+        str(logo_path),
+        "-filter_complex",
+        filter_complex,
+        "-map",
+        "[vout]",
+        "-map",
+        "0:a?",
+        "-c:v",
+        "libx264",
+        "-color_range",
+        "tv",
+        "-colorspace",
+        "bt709",
+        "-color_trc",
+        "bt709",
+        "-color_primaries",
+        "bt709",
+        "-c:a",
+        "copy",
+        "-movflags",
+        "+faststart",
         str(output_path),
     ]
 
-    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600)
+    result = subprocess.run(
+        cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600
+    )
     if result.returncode != 0:
-        log.warning(f"Watermark failed: {(result.stderr or '')[:300]}. Using video without watermark.")
+        log.warning(
+            f"Watermark failed: {(result.stderr or '')[:300]}. Using video without watermark."
+        )
         shutil.copy2(str(video_path), str(output_path))
     else:
         log.info(f"Watermark applied: {output_path}")
@@ -1136,11 +1360,13 @@ def transcribe_video(video_path: Path) -> list[dict] | None:
 
         segments = []
         for seg in segments_iter:
-            segments.append({
-                "start": seg.start,
-                "end": seg.end,
-                "text": seg.text.strip(),
-            })
+            segments.append(
+                {
+                    "start": seg.start,
+                    "end": seg.end,
+                    "text": seg.text.strip(),
+                }
+            )
         log.info(f"Transcribed {len(segments)} segments")
         return segments
 
@@ -1159,11 +1385,13 @@ def transcribe_video(video_path: Path) -> list[dict] | None:
 
         segments = []
         for seg in result.get("segments", []):
-            segments.append({
-                "start": seg["start"],
-                "end": seg["end"],
-                "text": seg["text"].strip(),
-            })
+            segments.append(
+                {
+                    "start": seg["start"],
+                    "end": seg["end"],
+                    "text": seg["text"].strip(),
+                }
+            )
         log.info(f"Transcribed {len(segments)} segments")
         return segments
 
@@ -1183,14 +1411,35 @@ def transcribe_video(video_path: Path) -> list[dict] | None:
 
         log.info("Transcribing audio with OpenAI Whisper API...")
         import tempfile
+
         audio_tmp = Path(tempfile.mktemp(suffix=".wav"))
         extract_cmd = [
-            "ffmpeg", "-y", "-i", str(video_path),
-            "-vn", "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1",
+            "ffmpeg",
+            "-y",
+            "-i",
+            str(video_path),
+            "-vn",
+            "-acodec",
+            "pcm_s16le",
+            "-ar",
+            "16000",
+            "-ac",
+            "1",
             str(audio_tmp),
         ]
-        extract_result = subprocess.run(extract_cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
-        if extract_result.returncode != 0 or not audio_tmp.exists() or audio_tmp.stat().st_size < 1000:
+        extract_result = subprocess.run(
+            extract_cmd,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=120,
+        )
+        if (
+            extract_result.returncode != 0
+            or not audio_tmp.exists()
+            or audio_tmp.stat().st_size < 1000
+        ):
             audio_tmp.unlink(missing_ok=True)
             log.warning("Failed to extract audio from video. No audio track? Skipping subtitles.")
             return None
@@ -1210,11 +1459,13 @@ def transcribe_video(video_path: Path) -> list[dict] | None:
         segments = []
         for seg in transcript.segments or []:
             # OpenAI SDK returns Pydantic objects, use attribute access
-            segments.append({
-                "start": seg.start,
-                "end": seg.end,
-                "text": seg.text.strip(),
-            })
+            segments.append(
+                {
+                    "start": seg.start,
+                    "end": seg.end,
+                    "text": seg.text.strip(),
+                }
+            )
         log.info(f"Transcribed {len(segments)} segments via OpenAI API")
         return segments
 
@@ -1242,7 +1493,7 @@ def translate_segments(segments: list[dict], source_lang: str) -> list[dict]:
 
         # Batch all texts for efficient translation
         lines = [seg["text"] for seg in segments]
-        numbered = "\n".join(f"{i+1}. {line}" for i, line in enumerate(lines))
+        numbered = "\n".join(f"{i + 1}. {line}" for i, line in enumerate(lines))
 
         response = call_llm(
             system_prompt=(
@@ -1311,7 +1562,9 @@ def _assign_speakers_from_enhanced_prompts(
         try:
             probe = subprocess.run(
                 ["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", str(clip_path)],
-                capture_output=True, text=True, timeout=100,
+                capture_output=True,
+                text=True,
+                timeout=100,
             )
             probe_data = json.loads(probe.stdout)
             duration = float(probe_data.get("format", {}).get("duration", 0))
@@ -1334,12 +1587,14 @@ def _assign_speakers_from_enhanced_prompts(
             except Exception:
                 pass
 
-        clip_data.append({
-            "start": cumulative,
-            "end": cumulative + duration,
-            "dialogues": dialogues,
-            "clip_name": clip_path.name,
-        })
+        clip_data.append(
+            {
+                "start": cumulative,
+                "end": cumulative + duration,
+                "dialogues": dialogues,
+                "clip_name": clip_path.name,
+            }
+        )
         cumulative += duration
 
     if not clip_data:
@@ -1393,12 +1648,16 @@ def _assign_speakers_from_enhanced_prompts(
             assigned += 1
 
     if assigned > 0:
-        log.info(f"  Assigned speakers to {assigned}/{len(segments)} segments from enhanced prompts")
+        log.info(
+            f"  Assigned speakers to {assigned}/{len(segments)} segments from enhanced prompts"
+        )
 
     return segments
 
 
-def _assign_speakers_from_script(segments: list[dict], story_slug: str | None, episode_number: int | None) -> list[dict]:
+def _assign_speakers_from_script(
+    segments: list[dict], story_slug: str | None, episode_number: int | None
+) -> list[dict]:
     """Assign character names to transcribed segments by matching to script dialogue.
 
     Uses TEXT SIMILARITY between Whisper transcription and script dialogue lines
@@ -1413,7 +1672,15 @@ def _assign_speakers_from_script(segments: list[dict], story_slug: str | None, e
         return segments
 
     try:
-        script_path = get_project_root() / "data" / "stories" / story_slug / "episodes" / str(episode_number) / "script.yaml"
+        script_path = (
+            get_project_root()
+            / "data"
+            / "stories"
+            / story_slug
+            / "episodes"
+            / str(episode_number)
+            / "script.yaml"
+        )
         if not script_path.exists():
             return segments
         script_data = yaml.safe_load(script_path.read_text(encoding="utf-8"))
@@ -1478,7 +1745,9 @@ def _assign_speakers_from_script(segments: list[dict], story_slug: str | None, e
                 log.debug(f"  Matched '{seg_text[:20]}' → {best_char} (score={best_score:.2f})")
 
         assigned = sum(1 for s in segments if "speaker" in s)
-        log.info(f"  Assigned speakers to {assigned}/{len(segments)} segments from script (text matching)")
+        log.info(
+            f"  Assigned speakers to {assigned}/{len(segments)} segments from script (text matching)"
+        )
 
     except Exception as e:
         log.warning(f"  Speaker assignment failed: {e}")
@@ -1491,12 +1760,14 @@ def _get_text_normalizer():
     Falls back to identity function if OpenCC is not available."""
     try:
         import opencc
+
         converter = opencc.OpenCC("t2s")
         return converter.convert
     except ImportError:
         # Fallback: strip punctuation for better matching
         import re as _re_norm
-        _punct = _re_norm.compile(r'[，。！？、；：""''（）…—\s,\.!?\-\s]')
+
+        _punct = _re_norm.compile(r'[，。！？、；：""' r"（）…—\s,\.!?\-\s]")
         return lambda text: _punct.sub("", text)
 
 
@@ -1562,10 +1833,17 @@ def generate_subtitles(
     try:
         probe = subprocess.run(
             [
-                "ffprobe", "-v", "quiet", "-print_format", "json",
-                "-show_streams", str(video_path),
+                "ffprobe",
+                "-v",
+                "quiet",
+                "-print_format",
+                "json",
+                "-show_streams",
+                str(video_path),
             ],
-            capture_output=True, text=True, timeout=100,
+            capture_output=True,
+            text=True,
+            timeout=100,
         )
         probe_data = json.loads(probe.stdout)
         video_stream = next(s for s in probe_data["streams"] if s["codec_type"] == "video")
@@ -1601,18 +1879,33 @@ def generate_subtitles(
     ass_path_escaped = str(ass_path.resolve()).replace("\\", "/").replace(":", "\\:")
 
     cmd = [
-        "ffmpeg", "-y",
-        "-i", str(video_path),
-        "-vf", f"ass='{ass_path_escaped}'",
-        "-c:v", "libx264",
-        "-color_range", "tv", "-colorspace", "bt709", "-color_trc", "bt709", "-color_primaries", "bt709",
-        "-c:a", "copy",
-        "-movflags", "+faststart",
+        "ffmpeg",
+        "-y",
+        "-i",
+        str(video_path),
+        "-vf",
+        f"ass='{ass_path_escaped}'",
+        "-c:v",
+        "libx264",
+        "-color_range",
+        "tv",
+        "-colorspace",
+        "bt709",
+        "-color_trc",
+        "bt709",
+        "-color_primaries",
+        "bt709",
+        "-c:a",
+        "copy",
+        "-movflags",
+        "+faststart",
         str(output_path),
     ]
 
     log.info("Burning subtitles into video...")
-    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600)
+    result = subprocess.run(
+        cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600
+    )
     if result.returncode != 0:
         log.warning(f"Subtitle burn failed: {(result.stderr or '')[:300]}")
         log.warning("Trying fallback with subtitles filter...")
@@ -1621,16 +1914,36 @@ def generate_subtitles(
         _write_srt(segments, srt_path)
         srt_escaped = str(srt_path.resolve()).replace("\\", "/").replace(":", "\\:")
         cmd_fallback = [
-            "ffmpeg", "-y",
-            "-i", str(video_path),
-            "-vf", f"subtitles='{srt_escaped}'",
-            "-c:v", "libx264",
-            "-color_range", "tv", "-colorspace", "bt709", "-color_trc", "bt709", "-color_primaries", "bt709",
-            "-c:a", "copy",
-            "-movflags", "+faststart",
+            "ffmpeg",
+            "-y",
+            "-i",
+            str(video_path),
+            "-vf",
+            f"subtitles='{srt_escaped}'",
+            "-c:v",
+            "libx264",
+            "-color_range",
+            "tv",
+            "-colorspace",
+            "bt709",
+            "-color_trc",
+            "bt709",
+            "-color_primaries",
+            "bt709",
+            "-c:a",
+            "copy",
+            "-movflags",
+            "+faststart",
             str(output_path),
         ]
-        result = subprocess.run(cmd_fallback, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600)
+        result = subprocess.run(
+            cmd_fallback,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=600,
+        )
         if result.returncode != 0:
             log.warning(f"Subtitle burn fallback also failed: {(result.stderr or '')[:300]}")
             return None
@@ -1641,6 +1954,7 @@ def generate_subtitles(
 
 def _write_srt(segments: list[dict], srt_path: Path) -> None:
     """Write segments to SRT format (fallback for ASS)."""
+
     def fmt_srt_time(s: float) -> str:
         h = int(s // 3600)
         m = int((s % 3600) // 60)
@@ -1670,7 +1984,7 @@ def _parse_ass_english_segments(ass_path: Path) -> list[dict]:
     Also captures the Name field (speaker) from ASS for voice assignment.
     """
     segments = []
-    with open(ass_path, "r", encoding="utf-8") as f:
+    with open(ass_path, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if not line.startswith("Dialogue:"):
@@ -1686,13 +2000,15 @@ def _parse_ass_english_segments(ass_path: Path) -> list[dict]:
             text = parts[9].strip().replace("\\N", " ").replace("\\n", " ")
             if not text:
                 continue
-            segments.append({
-                "style": style,
-                "name": name,
-                "start": _parse_ass_time(start_str),
-                "end": _parse_ass_time(end_str),
-                "text": text,
-            })
+            segments.append(
+                {
+                    "style": style,
+                    "name": name,
+                    "start": _parse_ass_time(start_str),
+                    "end": _parse_ass_time(end_str),
+                    "text": text,
+                }
+            )
 
     # Prefer Sub (English) lines; fallback to Main if no Sub found
     sub_lines = [s for s in segments if s["style"] == "Sub"]
@@ -1767,8 +2083,9 @@ def _infer_speech_vibe(text: str) -> str:
     return " ".join(vibe_parts)
 
 
-def _generate_tts_segment(text: str, output_path: Path, voice: str = "nova",
-                          speaker_name: str = "", gender: str = "") -> bool:
+def _generate_tts_segment(
+    text: str, output_path: Path, voice: str = "nova", speaker_name: str = "", gender: str = ""
+) -> bool:
     """Generate TTS audio for a text segment.
 
     Args:
@@ -1793,6 +2110,7 @@ def _generate_tts_segment(text: str, output_path: Path, voice: str = "nova",
     if openai_key and not openai_key.startswith("sk-your_") and not is_edge_voice:
         try:
             from openai import OpenAI
+
             client = OpenAI(api_key=openai_key)
 
             # Build expressive instruction for gpt-4o-mini-tts
@@ -1804,7 +2122,9 @@ def _generate_tts_segment(text: str, output_path: Path, voice: str = "nova",
                 f"{vibe} "
             )
             if speaker_name:
-                instruction += f"You are voicing the character '{speaker_name}'. Stay in character. "
+                instruction += (
+                    f"You are voicing the character '{speaker_name}'. Stay in character. "
+                )
             if gender:
                 instruction += f"Use a {gender} voice. "
 
@@ -1839,7 +2159,9 @@ def _generate_tts_segment(text: str, output_path: Path, voice: str = "nova",
     # Fallback / direct edge-tts
     try:
         import asyncio
+
         import edge_tts
+
         edge_voice = voice if is_edge_voice else "en-US-JennyMultilingualNeural"
 
         async def _run_edge_tts():
@@ -1893,17 +2215,45 @@ def generate_global_en_version(
         # Use re-encoding (not -c copy) for frame-accurate trim.
         # With -c copy, -ss jumps to the nearest keyframe which can skip 10+ seconds.
         trim_cmd = [
-            "ffmpeg", "-y",
-            "-ss", "2.0",
-            "-i", str(video_path),
-            "-c:v", "libx264", "-preset", "fast", "-pix_fmt", "yuv420p",
-            "-color_range", "tv", "-colorspace", "bt709", "-color_trc", "bt709", "-color_primaries", "bt709",
-            "-c:a", "aac", "-b:a", "192k",
-            "-movflags", "+faststart",
+            "ffmpeg",
+            "-y",
+            "-ss",
+            "2.0",
+            "-i",
+            str(video_path),
+            "-c:v",
+            "libx264",
+            "-preset",
+            "fast",
+            "-pix_fmt",
+            "yuv420p",
+            "-color_range",
+            "tv",
+            "-colorspace",
+            "bt709",
+            "-color_trc",
+            "bt709",
+            "-color_primaries",
+            "bt709",
+            "-c:a",
+            "aac",
+            "-b:a",
+            "192k",
+            "-movflags",
+            "+faststart",
             str(trimmed_video),
         ]
-        log.info("  Trimming original opening (first 2s) from input video (re-encoding for accuracy)...")
-        trim_result = subprocess.run(trim_cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600)
+        log.info(
+            "  Trimming original opening (first 2s) from input video (re-encoding for accuracy)..."
+        )
+        trim_result = subprocess.run(
+            trim_cmd,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=600,
+        )
         if trim_result.returncode != 0 or not trimmed_video.exists():
             log.warning(f"  Trim failed, using original video: {(trim_result.stderr or '')[:300]}")
             trimmed_video = video_path
@@ -1925,12 +2275,14 @@ def generate_global_en_version(
             new_start = seg["start"] - time_offset
             new_end = seg["end"] - time_offset
             if new_end > 0:  # Only keep segments that are after the trim point
-                adjusted_segments.append({
-                    "text": seg["text"],
-                    "start": max(0, new_start),
-                    "end": new_end,
-                    "name": seg.get("name", ""),
-                })
+                adjusted_segments.append(
+                    {
+                        "text": seg["text"],
+                        "start": max(0, new_start),
+                        "end": new_end,
+                        "name": seg.get("name", ""),
+                    }
+                )
         segments = adjusted_segments
 
     log.info(f"  Found {len(segments)} English dialogue segments")
@@ -2010,7 +2362,10 @@ def generate_global_en_version(
             # If no OpenAI key and the YAML voice is an OpenAI voice, use fallback
             if not has_openai and "-" not in yaml_voice:
                 speaker_voice_map[spk] = speaker_voice_fallback.get(
-                    spk, edge_female_voices[0] if speaker_gender.get(spk) == "female" else edge_male_voices[0]
+                    spk,
+                    edge_female_voices[0]
+                    if speaker_gender.get(spk) == "female"
+                    else edge_male_voices[0],
                 )
             else:
                 speaker_voice_map[spk] = yaml_voice
@@ -2019,9 +2374,13 @@ def generate_global_en_version(
             gender = speaker_gender.get(spk, "")
             if gender == "female":
                 if has_openai:
-                    speaker_voice_map[spk] = openai_female_voices[female_idx % len(openai_female_voices)]
+                    speaker_voice_map[spk] = openai_female_voices[
+                        female_idx % len(openai_female_voices)
+                    ]
                 else:
-                    speaker_voice_map[spk] = edge_female_voices[female_idx % len(edge_female_voices)]
+                    speaker_voice_map[spk] = edge_female_voices[
+                        female_idx % len(edge_female_voices)
+                    ]
                 female_idx += 1
             elif gender == "male":
                 if has_openai:
@@ -2032,22 +2391,25 @@ def generate_global_en_version(
             else:
                 if (female_idx + male_idx) % 2 == 0:
                     if has_openai:
-                        speaker_voice_map[spk] = openai_female_voices[female_idx % len(openai_female_voices)]
+                        speaker_voice_map[spk] = openai_female_voices[
+                            female_idx % len(openai_female_voices)
+                        ]
                     else:
-                        speaker_voice_map[spk] = edge_female_voices[female_idx % len(edge_female_voices)]
+                        speaker_voice_map[spk] = edge_female_voices[
+                            female_idx % len(edge_female_voices)
+                        ]
                     female_idx += 1
                 else:
                     if has_openai:
-                        speaker_voice_map[spk] = openai_male_voices[male_idx % len(openai_male_voices)]
+                        speaker_voice_map[spk] = openai_male_voices[
+                            male_idx % len(openai_male_voices)
+                        ]
                     else:
                         speaker_voice_map[spk] = edge_male_voices[male_idx % len(edge_male_voices)]
                     male_idx += 1
 
     log.info(f"  Speaker voice map: {speaker_voice_map}")
 
-    # Default voices for unnamed segments (crowd, narration, etc.)
-    default_female_voice = openai_female_voices[0] if has_openai else edge_female_voices[0]
-    default_male_voice = openai_male_voices[0] if has_openai else edge_male_voices[0]
     import random as _rng
 
     tts_dir = video_path.parent / "_tts_en"
@@ -2067,8 +2429,36 @@ def generate_global_en_version(
             # No known speaker — detect gender from text content and randomly pick a voice
             seg_text = seg.get("text", "").lower()
             # Heuristic gender detection from speech content
-            female_hints = ("lady", "girl", "miss", "ma'am", "madam", "she ", "her ", "mother", "sister", "daughter", "wife", "queen", "princess")
-            male_hints = ("sir", "mister", "mr.", "he ", "him ", "man", "boy", "father", "brother", "son", "husband", "king", "old man")
+            female_hints = (
+                "lady",
+                "girl",
+                "miss",
+                "ma'am",
+                "madam",
+                "she ",
+                "her ",
+                "mother",
+                "sister",
+                "daughter",
+                "wife",
+                "queen",
+                "princess",
+            )
+            male_hints = (
+                "sir",
+                "mister",
+                "mr.",
+                "he ",
+                "him ",
+                "man",
+                "boy",
+                "father",
+                "brother",
+                "son",
+                "husband",
+                "king",
+                "old man",
+            )
             female_score = sum(1 for h in female_hints if h in seg_text)
             male_score = sum(1 for h in male_hints if h in seg_text)
             if female_score > male_score:
@@ -2080,9 +2470,15 @@ def generate_global_en_version(
                 seg_gender = _rng.choice(["female", "male"])
 
             if seg_gender == "female":
-                voice = _rng.choice(openai_female_voices) if has_openai else _rng.choice(edge_female_voices)
+                voice = (
+                    _rng.choice(openai_female_voices)
+                    if has_openai
+                    else _rng.choice(edge_female_voices)
+                )
             else:
-                voice = _rng.choice(openai_male_voices) if has_openai else _rng.choice(edge_male_voices)
+                voice = (
+                    _rng.choice(openai_male_voices) if has_openai else _rng.choice(edge_male_voices)
+                )
             name = ""
 
         tts_jobs.append((i, seg, tts_path, voice, name, seg_gender))
@@ -2097,8 +2493,11 @@ def generate_global_en_version(
     def _tts_worker(job):
         idx, seg, tts_path, voice, name, seg_gender = job
         success = _generate_tts_segment(
-            seg["text"], tts_path, voice=voice,
-            speaker_name=name, gender=seg_gender,
+            seg["text"],
+            tts_path,
+            voice=voice,
+            speaker_name=name,
+            gender=seg_gender,
         )
         return idx, seg, tts_path, success
 
@@ -2109,7 +2508,9 @@ def generate_global_en_version(
             if success:
                 tts_files.append({"path": tts_path, "start": seg["start"], "end": seg["end"]})
             else:
-                log.warning(f"  Skipping segment {idx}: TTS generation failed for: {seg['text'][:50]}")
+                log.warning(
+                    f"  Skipping segment {idx}: TTS generation failed for: {seg['text'][:50]}"
+                )
 
     # Sort by start time (futures may complete out of order)
     tts_files.sort(key=lambda x: x["start"])
@@ -2121,18 +2522,32 @@ def generate_global_en_version(
             trimmed_video.unlink(missing_ok=True)
         return None
 
-    log.info(f"  Generated TTS for {len(tts_files)}/{len(segments)} segments ({len(speakers)} named speakers)")
+    log.info(
+        f"  Generated TTS for {len(tts_files)}/{len(segments)} segments ({len(speakers)} named speakers)"
+    )
 
     # Step 3: Get video duration and check for audio stream
     try:
         probe = subprocess.run(
-            ["ffprobe", "-v", "quiet", "-print_format", "json",
-             "-show_streams", "-show_format", str(trimmed_video)],
-            capture_output=True, text=True, timeout=100,
+            [
+                "ffprobe",
+                "-v",
+                "quiet",
+                "-print_format",
+                "json",
+                "-show_streams",
+                "-show_format",
+                str(trimmed_video),
+            ],
+            capture_output=True,
+            text=True,
+            timeout=100,
         )
         probe_data = json.loads(probe.stdout)
         video_duration = float(probe_data.get("format", {}).get("duration", "120"))
-        has_audio_stream = any(s.get("codec_type") == "audio" for s in probe_data.get("streams", []))
+        has_audio_stream = any(
+            s.get("codec_type") == "audio" for s in probe_data.get("streams", [])
+        )
     except Exception:
         video_duration = 120.0
         has_audio_stream = False
@@ -2166,7 +2581,14 @@ def generate_global_en_version(
     else:
         # No audio stream — generate silent background
         log.info("  No audio in source video. Generating silent background.")
-        filter_inputs = ["-i", str(trimmed_video), "-f", "lavfi", "-i", f"anullsrc=r=44100:cl=stereo:d={video_duration}"]
+        filter_inputs = [
+            "-i",
+            str(trimmed_video),
+            "-f",
+            "lavfi",
+            "-i",
+            f"anullsrc=r=44100:cl=stereo:d={video_duration}",
+        ]
         # Re-add TTS inputs after the silent source
         for tf in tts_files:
             filter_inputs.extend(["-i", str(tf["path"])])
@@ -2189,7 +2611,9 @@ def generate_global_en_version(
     # Since background is muted during speech, TTS doesn't compete — use simple amix
     # Use duration=longest so TTS segments near the end aren't cut off mid-sentence
     all_mix = "".join(mix_inputs)
-    filter_parts.append(f"{all_mix}amix=inputs={n_inputs + 1}:duration=longest:dropout_transition=2:normalize=0,volume=4.0[aout]")
+    filter_parts.append(
+        f"{all_mix}amix=inputs={n_inputs + 1}:duration=longest:dropout_transition=2:normalize=0,volume=4.0[aout]"
+    )
 
     filter_complex = ";".join(filter_parts)
 
@@ -2197,19 +2621,30 @@ def generate_global_en_version(
     en_video_no_opening = output_path.parent / f"_en_body_{output_path.name}"
 
     cmd = [
-        "ffmpeg", "-y",
+        "ffmpeg",
+        "-y",
         *filter_inputs,
-        "-filter_complex", filter_complex,
-        "-map", "0:v",
-        "-map", "[aout]",
-        "-c:v", "copy",
-        "-c:a", "aac", "-b:a", "192k",
-        "-movflags", "+faststart",
+        "-filter_complex",
+        filter_complex,
+        "-map",
+        "0:v",
+        "-map",
+        "[aout]",
+        "-c:v",
+        "copy",
+        "-c:a",
+        "aac",
+        "-b:a",
+        "192k",
+        "-movflags",
+        "+faststart",
         str(en_video_no_opening),
     ]
 
     log.info("  Mixing TTS audio into video (speech removed, background preserved)...")
-    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600)
+    result = subprocess.run(
+        cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600
+    )
 
     # Clean up TTS temp files and trimmed video
     shutil.rmtree(tts_dir, ignore_errors=True)
@@ -2237,7 +2672,15 @@ def generate_global_en_version(
         # Fallback to script.yaml
         if not en_story_name and story_slug:
             try:
-                script_path = get_project_root() / "data" / "stories" / story_slug / "episodes" / str(episode_number) / "script.yaml"
+                script_path = (
+                    get_project_root()
+                    / "data"
+                    / "stories"
+                    / story_slug
+                    / "episodes"
+                    / str(episode_number)
+                    / "script.yaml"
+                )
                 if script_path.exists():
                     script_data = yaml.safe_load(script_path.read_text(encoding="utf-8"))
                     if script_data:
@@ -2259,21 +2702,40 @@ def generate_global_en_version(
             # to match the EN body's audio stream for concat compatibility
             en_opening_with_audio = output_path.parent / f"_en_opening_audio_{en_opening.name}"
             add_audio_cmd = [
-                "ffmpeg", "-y",
-                "-i", str(en_opening),
-                "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo",
-                "-c:v", "copy",
-                "-c:a", "aac", "-b:a", "192k",
+                "ffmpeg",
+                "-y",
+                "-i",
+                str(en_opening),
+                "-f",
+                "lavfi",
+                "-i",
+                "anullsrc=r=44100:cl=stereo",
+                "-c:v",
+                "copy",
+                "-c:a",
+                "aac",
+                "-b:a",
+                "192k",
                 "-shortest",
-                "-movflags", "+faststart",
+                "-movflags",
+                "+faststart",
                 str(en_opening_with_audio),
             ]
-            add_audio_result = subprocess.run(add_audio_cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300)
+            add_audio_result = subprocess.run(
+                add_audio_cmd,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=300,
+            )
             if add_audio_result.returncode == 0 and en_opening_with_audio.exists():
                 en_opening.unlink(missing_ok=True)
                 en_opening = en_opening_with_audio
             else:
-                log.warning(f"  Failed to add silent audio to EN opening: {(add_audio_result.stderr or '')[:200]}")
+                log.warning(
+                    f"  Failed to add silent audio to EN opening: {(add_audio_result.stderr or '')[:200]}"
+                )
 
             # Concat EN opening + EN body
             concat_output = output_path.parent / f"_en_concat_{output_path.name}"
@@ -2283,13 +2745,28 @@ def generate_global_en_version(
                 encoding="utf-8",
             )
             concat_cmd = [
-                "ffmpeg", "-y", "-f", "concat", "-safe", "0",
-                "-i", str(concat_list),
-                "-c", "copy",
-                "-movflags", "+faststart",
+                "ffmpeg",
+                "-y",
+                "-f",
+                "concat",
+                "-safe",
+                "0",
+                "-i",
+                str(concat_list),
+                "-c",
+                "copy",
+                "-movflags",
+                "+faststart",
                 str(concat_output),
             ]
-            concat_result = subprocess.run(concat_cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
+            concat_result = subprocess.run(
+                concat_cmd,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=120,
+            )
             concat_list.unlink(missing_ok=True)
             en_opening.unlink(missing_ok=True)
 
@@ -2355,7 +2832,9 @@ def generate_temp_final_summary(
         if prompt_file.exists():
             try:
                 prompt_data = load_yaml(str(prompt_file))
-                clip_entry["prompt"] = prompt_data.get("description") or prompt_data.get("prompt", "")
+                clip_entry["prompt"] = prompt_data.get("description") or prompt_data.get(
+                    "prompt", ""
+                )
                 clip_entry["dialogue"] = prompt_data.get("dialogue", [])
                 clip_entry["action"] = prompt_data.get("action", "")
                 clip_entry["environment"] = prompt_data.get("environment", "")
@@ -2388,13 +2867,15 @@ def generate_temp_final_summary(
     for scene_data in scenes_breakdown.get("scenes", []):
         scene_num = scene_data.get("scene_number")
         if scene_num in seen_scenes:
-            scene_summaries.append({
-                "scene_number": scene_num,
-                "location_ref": scene_data.get("location_ref", ""),
-                "mood": scene_data.get("mood", ""),
-                "character_refs": scene_data.get("character_refs", []),
-                "style": scene_data.get("style", ""),
-            })
+            scene_summaries.append(
+                {
+                    "scene_number": scene_num,
+                    "location_ref": scene_data.get("location_ref", ""),
+                    "mood": scene_data.get("mood", ""),
+                    "character_refs": scene_data.get("character_refs", []),
+                    "style": scene_data.get("style", ""),
+                }
+            )
 
     summary = {
         "status": "temp",
@@ -2438,12 +2919,10 @@ def finalize_summary(ep_dir: Path) -> Path | None:
 # ---------------------------------------------------------------------------
 
 
-def generate_edit_plan_with_llm(
-    episode_number: int, story_slug: str, clips: list[Path]
-) -> dict:
+def generate_edit_plan_with_llm(episode_number: int, story_slug: str, clips: list[Path]) -> dict:
     """Call editor agent via LLM to plan the assembly."""
-    from llm import call_agent, parse_yaml_response
     from common import story_dir
+    from llm import call_agent, parse_yaml_response
 
     ep_dir = episode_dir(episode_number, story_slug)
     script_path = ep_dir / "script.yaml"
@@ -2541,43 +3020,57 @@ def main():
     parser.add_argument("--transitions", type=str, default=None, help="Transition style override")
     parser.add_argument("--skip-validation", action="store_true", help="Skip quality validation")
     parser.add_argument(
-        "--list-assets", action="store_true",
+        "--list-assets",
+        action="store_true",
         help="List available clips and audio files, then exit",
     )
     parser.add_argument(
-        "--select-clips", type=str, default=None,
+        "--select-clips",
+        type=str,
+        default=None,
         help="Comma-separated list of clip filenames to include (default: all)",
     )
     parser.add_argument(
-        "--select-audio", type=str, default=None,
+        "--select-audio",
+        type=str,
+        default=None,
         help="Comma-separated list of audio filenames to include (default: all)",
     )
     parser.add_argument(
-        "--mute-video-audio", action="store_true",
+        "--mute-video-audio",
+        action="store_true",
         help="Mute original video audio (strip audio track from clips)",
     )
     parser.add_argument(
-        "--no-watermark", action="store_true",
+        "--no-watermark",
+        action="store_true",
         help="Skip watermark overlay",
     )
     parser.add_argument(
-        "--subtitles", action="store_true", default=True,
+        "--subtitles",
+        action="store_true",
+        default=True,
         help="Auto-generate subtitles from audio (default: enabled)",
     )
     parser.add_argument(
-        "--no-subtitles", action="store_true",
+        "--no-subtitles",
+        action="store_true",
         help="Explicitly skip subtitle generation",
     )
     parser.add_argument(
-        "--global-en", action="store_true", default=True,
+        "--global-en",
+        action="store_true",
+        default=True,
         help="Generate English (global) version with TTS audio (default: enabled)",
     )
     parser.add_argument(
-        "--no-global-en", action="store_true",
+        "--no-global-en",
+        action="store_true",
         help="Skip English global version generation",
     )
     parser.add_argument(
-        "--no-opening", action="store_true",
+        "--no-opening",
+        action="store_true",
         help="Skip episode opening generation (2s title card)",
     )
     args = parser.parse_args()
@@ -2594,7 +3087,9 @@ def main():
 
     if not all_clips:
         log.error(f"No scene clips found in {ep_dir / 'clips'}")
-        log.error("Generate clips first with: python agents/generate_video.py --episode N --story SLUG")
+        log.error(
+            "Generate clips first with: python agents/generate_video.py --episode N --story SLUG"
+        )
         sys.exit(1)
 
     # List mode: print assets and exit
@@ -2640,6 +3135,7 @@ def main():
 
     # Compose — use timestamped subfolder like other agents
     from datetime import datetime
+
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     final_dir = ep_dir / "compose" / ts
     final_dir.mkdir(parents=True, exist_ok=True)
@@ -2669,7 +3165,7 @@ def main():
 
     # Add watermark
     if not args.no_watermark:
-        wm_result = add_watermark(raw_output, final_output)
+        add_watermark(raw_output, final_output)
         # If watermark succeeded, final_output exists; if it failed, it returned raw_output
         if final_output.exists():
             raw_output.unlink(missing_ok=True)
@@ -2686,9 +3182,14 @@ def main():
     if do_subtitles:
         log.info("Generating auto-subtitles from audio...")
         sub_output = final_output.parent / f"episode_{args.episode}_sub.mp4"
-        sub_result = generate_subtitles(final_output, sub_output, content_lang=content_lang,
-                                        story_slug=args.story, episode_number=args.episode,
-                                        clips=selected_clips)
+        sub_result = generate_subtitles(
+            final_output,
+            sub_output,
+            content_lang=content_lang,
+            story_slug=args.story,
+            episode_number=args.episode,
+            clips=selected_clips,
+        )
         if sub_result and sub_result.exists():
             # Replace final with subtitled version
             final_output.unlink(missing_ok=True)
@@ -2716,9 +3217,14 @@ def main():
             en_output = final_output.parent / f"episode_{args.episode}_EN.mp4"
             # Pass episode info for EN opening generation
             # Use the first scene clip (not the opening) for the first frame
-            first_scene_clip = next((c for c in selected_clips if "_opening" not in c.name), selected_clips[0] if selected_clips else None)
+            first_scene_clip = next(
+                (c for c in selected_clips if "_opening" not in c.name),
+                selected_clips[0] if selected_clips else None,
+            )
             en_result = generate_global_en_version(
-                final_output, ass_path, en_output,
+                final_output,
+                ass_path,
+                en_output,
                 episode_number=args.episode,
                 story_slug=args.story,
                 first_clip=first_scene_clip,
@@ -2730,18 +3236,45 @@ def main():
                     crop_w, crop_h = crop_dims
                     en_info = _probe_clip(en_result)
                     if en_info["width"] > crop_w or en_info["height"] > crop_h:
-                        log.info(f"Cropping EN video from {en_info['width']}x{en_info['height']} to {crop_w}x{crop_h}")
+                        log.info(
+                            f"Cropping EN video from {en_info['width']}x{en_info['height']} to {crop_w}x{crop_h}"
+                        )
                         en_cropped = en_result.parent / f"_en_cropped_{en_result.name}"
                         en_crop_cmd = [
-                            "ffmpeg", "-y", "-i", str(en_result),
-                            "-vf", f"scale={crop_w}:{crop_h}:force_original_aspect_ratio=decrease,pad={crop_w}:{crop_h}:(ow-iw)/2:(oh-ih)/2,crop={crop_w}:{crop_h}",
-                            "-c:v", "libx264", "-preset", "fast", "-pix_fmt", "yuv420p",
-                            "-color_range", "tv", "-colorspace", "bt709", "-color_trc", "bt709", "-color_primaries", "bt709",
-                            "-c:a", "copy",
-                            "-movflags", "+faststart",
+                            "ffmpeg",
+                            "-y",
+                            "-i",
+                            str(en_result),
+                            "-vf",
+                            f"scale={crop_w}:{crop_h}:force_original_aspect_ratio=decrease,pad={crop_w}:{crop_h}:(ow-iw)/2:(oh-ih)/2,crop={crop_w}:{crop_h}",
+                            "-c:v",
+                            "libx264",
+                            "-preset",
+                            "fast",
+                            "-pix_fmt",
+                            "yuv420p",
+                            "-color_range",
+                            "tv",
+                            "-colorspace",
+                            "bt709",
+                            "-color_trc",
+                            "bt709",
+                            "-color_primaries",
+                            "bt709",
+                            "-c:a",
+                            "copy",
+                            "-movflags",
+                            "+faststart",
                             str(en_cropped),
                         ]
-                        en_crop_result = subprocess.run(en_crop_cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300)
+                        en_crop_result = subprocess.run(
+                            en_crop_cmd,
+                            capture_output=True,
+                            text=True,
+                            encoding="utf-8",
+                            errors="replace",
+                            timeout=300,
+                        )
                         if en_crop_result.returncode == 0 and en_cropped.exists():
                             en_result.unlink(missing_ok=True)
                             shutil.move(str(en_cropped), str(en_result))
@@ -2749,7 +3282,9 @@ def main():
                         else:
                             log.warning(f"  EN crop failed: {(en_crop_result.stderr or '')[:200]}")
                             en_cropped.unlink(missing_ok=True)
-                log.info(f"Global EN version: {en_result} ({en_result.stat().st_size / 1024 / 1024:.1f} MB)")
+                log.info(
+                    f"Global EN version: {en_result} ({en_result.stat().st_size / 1024 / 1024:.1f} MB)"
+                )
             else:
                 log.warning("Global EN version generation failed.")
         else:
@@ -2764,10 +3299,7 @@ def main():
         # Each crossfade between N clips removes (N-1) * crossfade_dur from total
         opening_dur = 2.0 if not args.no_opening else 0.0
         non_opening_clips = [c for c in selected_clips if "_opening" not in c.name]
-        clip_dur_sum = sum(
-            _probe_clip(c).get("duration", 5.0)
-            for c in non_opening_clips
-        )
+        clip_dur_sum = sum(_probe_clip(c).get("duration", 5.0) for c in non_opening_clips)
         n_clips_total = len(non_opening_clips) + (1 if not args.no_opening else 0)
         xfade_dur = float(os.environ.get("CLIP_CROSSFADE_SECONDS", "0.75"))
         xfade_loss = max(0, n_clips_total - 1) * xfade_dur
@@ -2795,7 +3327,17 @@ def main():
     log.info(f"Composition saved to {final_dir}")
 
     # Clean up intermediate files from compose output dir (opening, raw, temp)
-    for cleanup_pat in ["*_opening.mp4", "_prep_*", "_concat_*", "_with_audio.mp4", "_en_body_*", "_en_concat_*", "_en_trimmed_*", "_en_cropped_*", "_en_opening_audio_*"]:
+    for cleanup_pat in [
+        "*_opening.mp4",
+        "_prep_*",
+        "_concat_*",
+        "_with_audio.mp4",
+        "_en_body_*",
+        "_en_concat_*",
+        "_en_trimmed_*",
+        "_en_cropped_*",
+        "_en_opening_audio_*",
+    ]:
         for f in final_dir.glob(cleanup_pat):
             f.unlink(missing_ok=True)
             log.info(f"  Cleaned up: {f.name}")

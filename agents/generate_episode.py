@@ -27,15 +27,13 @@ from datetime import datetime
 from pathlib import Path
 
 # Fix Windows console encoding for non-ASCII output (Chinese, etc.)
-if sys.stdout.encoding and sys.stdout.encoding.lower() not in ('utf-8', 'utf8'):
-    sys.stdout.reconfigure(encoding='utf-8')
-if sys.stderr.encoding and sys.stderr.encoding.lower() not in ('utf-8', 'utf8'):
-    sys.stderr.reconfigure(encoding='utf-8')
+if sys.stdout.encoding and sys.stdout.encoding.lower() not in ("utf-8", "utf8"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if sys.stderr.encoding and sys.stderr.encoding.lower() not in ("utf-8", "utf8"):
+    sys.stderr.reconfigure(encoding="utf-8")
 
 import yaml
-
 from common import (
-    detect_content_language,
     episode_dir,
     get_project_root,
     get_story_language,
@@ -63,14 +61,15 @@ def _char_slug(char: dict) -> str:
     name = char.get("name", "") or char.get("name_zh", "") or "unknown"
     # Try ASCII-safe slug from name
     slug = name.lower().replace(" ", "_")
-    if slug.isascii() and re.match(r'^[a-z0-9_]+$', slug):
+    if slug.isascii() and re.match(r"^[a-z0-9_]+$", slug):
         return slug
     # Non-ASCII name — convert to pinyin
     try:
-        from pypinyin import pinyin, Style
+        from pypinyin import Style, pinyin
+
         py = pinyin(name, style=Style.NORMAL)
         slug = "_".join(s[0] for s in py if s[0])
-        slug = re.sub(r'[^a-z0-9_]', '', slug.lower())
+        slug = re.sub(r"[^a-z0-9_]", "", slug.lower())
         if slug:
             return slug
     except ImportError:
@@ -167,6 +166,7 @@ def load_previous_episode_engagement(episode_number: int) -> str:
         return ""
 
     import urllib.request
+
     api_base = os.environ.get("SITE_API_URL", "http://localhost:3000")
     parts = []
 
@@ -179,7 +179,9 @@ def load_previous_episode_engagement(episode_number: int) -> str:
             if data.get("total_votes", 0) > 0:
                 results_text = []
                 for r in data.get("results", []):
-                    results_text.append(f"  - {r['label']}: {r['votes']} votes ({r['percentage']}%)")
+                    results_text.append(
+                        f"  - {r['label']}: {r['votes']} votes ({r['percentage']}%)"
+                    )
                 winner = data.get("winner", "N/A")
                 parts.append(
                     f"### Episode {prev_ep} Vote Results (total: {data['total_votes']})\n"
@@ -216,8 +218,11 @@ def get_episode_context(story_slug: str, episode_number: int) -> dict:
     if not story:
         return {}
     episode = next(
-        (e for e in store.get("episodes", [])
-         if e.get("story_id") == story["id"] and e.get("episode_number") == episode_number),
+        (
+            e
+            for e in store.get("episodes", [])
+            if e.get("story_id") == story["id"] and e.get("episode_number") == episode_number
+        ),
         None,
     )
     if not episode:
@@ -257,7 +262,7 @@ def load_voice_library() -> tuple[str, set[str]]:
     lines = []
     for v in voices:
         lines.append(
-            f"- asset_id: \"{v['asset_id']}\"  # {v.get('name', '')} | "
+            f'- asset_id: "{v["asset_id"]}"  # {v.get("name", "")} | '
             f"{v.get('gender', '')} | {v.get('age_range', '')} | "
             f"{v.get('language', '')} | {v.get('description', '')}"
         )
@@ -297,7 +302,13 @@ def get_negative_prompt_instruction(story_slug: str) -> str:
         policy = load_yaml(str(policy_path))
         prohibited_items = policy.get("prohibited", [])
     if not prohibited_items:
-        prohibited_items = ["sexual_content", "graphic_violence", "discrimination", "nudity", "weapons"]
+        prohibited_items = [
+            "sexual_content",
+            "graphic_violence",
+            "discrimination",
+            "nudity",
+            "weapons",
+        ]
 
     # Format items as human-readable (replace underscores with spaces)
     items_str = ", ".join(item.replace("_", " ") for item in prohibited_items)
@@ -310,7 +321,7 @@ def get_negative_prompt_instruction(story_slug: str) -> str:
             f"The following items MUST be included in every clip's negative_prompt, "
             f"translated to the story's language: {items_str}"
         )
-    return f"Every clip MUST include negative_prompt: \"{items_str}\""
+    return f'Every clip MUST include negative_prompt: "{items_str}"'
 
 
 def load_existing_characters(story_slug: str) -> str:
@@ -362,7 +373,9 @@ def load_previous_episodes(story_slug: str, current_episode: int) -> str:
         script_path = ep_path / "script.yaml"
         if final_folder_summary.exists():
             content = final_folder_summary.read_text(encoding="utf-8")
-            parts.append(f"### Episode {ep_num} Summary (Published — from final folder)\n```yaml\n{content}\n```")
+            parts.append(
+                f"### Episode {ep_num} Summary (Published — from final folder)\n```yaml\n{content}\n```"
+            )
         elif summary_path.exists():
             content = summary_path.read_text(encoding="utf-8")
             parts.append(f"### Episode {ep_num} Summary (Published)\n```yaml\n{content}\n```")
@@ -407,11 +420,11 @@ def generate_script_with_llm(
     user_message = f"""Generate a full episode script for Episode {episode_number}.
 
 ## Story Info
-- Title: {episode_context.get('story_title', '')}
-- Description: {episode_context.get('story_description', '')}
+- Title: {episode_context.get("story_title", "")}
+- Description: {episode_context.get("story_description", "")}
 
 ## Story Background
-{episode_context.get('story_background', '')}
+{episode_context.get("story_background", "")}
 
 ## Story Bible
 ```yaml
@@ -429,8 +442,8 @@ def generate_script_with_llm(
 ## Previous Episodes (continue the storyline from where the last episode ended)
 {previous_episodes}
 
-## Episode Direction (Admin Prompt, weight={episode_context.get('admin_prompt_weight', 0.8)})
-{episode_context.get('admin_prompt', '')}
+## Episode Direction (Admin Prompt, weight={episode_context.get("admin_prompt_weight", 0.8)})
+{episode_context.get("admin_prompt", "")}
 
 ## Previous Vote Results
 {yaml.dump(votes, default_flow_style=False, allow_unicode=True) if votes else "No CLI vote file provided."}
@@ -501,7 +514,7 @@ def generate_script_with_llm(
   her knife, each strike echoing through the cavern. As the crystal loosens, the blue light intensifies
   dramatically, illuminating her wide-eyed expression. She pulls it free, and the entire cave trembles —
   stalactites sway overhead, and a low rumble builds from deep underground."
-- The total story content MUST fill the full {specs['max_total_seconds']}s episode duration. Every second
+- The total story content MUST fill the full {specs["max_total_seconds"]}s episode duration. Every second
   must have meaningful visual action described. Thin descriptions create boring, empty video clips.
 - Each clip (3-6s) will be generated from the visual_description — if the description is too thin,
   the AI video model has nothing to work with and produces static, lifeless output.
@@ -520,17 +533,17 @@ def generate_script_with_llm(
 - When time jumps occur (day→night), include a visual or dialogue cue in the scene description.
 
 ## Video Specifications (STRICTLY ENFORCE)
-- Episode TOTAL duration: EXACTLY {specs['max_total_seconds']} seconds ({specs['max_total_seconds'] // 60}m{specs['max_total_seconds'] % 60:02d}s). The last scene's time_range MUST end at or before {specs['max_total_seconds'] // 60}:{specs['max_total_seconds'] % 60:02d}.
-- Clip duration range: {specs['clip_range']}s. Default: {specs['clip_default']}s. You MAY vary per clip.
+- Episode TOTAL duration: EXACTLY {specs["max_total_seconds"]} seconds ({specs["max_total_seconds"] // 60}m{specs["max_total_seconds"] % 60:02d}s). The last scene's time_range MUST end at or before {specs["max_total_seconds"] // 60}:{specs["max_total_seconds"] % 60:02d}.
+- Clip duration range: {specs["clip_range"]}s. Default: {specs["clip_default"]}s. You MAY vary per clip.
 - BUDGET MATH (you MUST follow this):
-  - Total budget: {specs['max_total_seconds']}s
-  - Clip duration: {specs['clip_range']}s each (default {specs['clip_default']}s)
-  - Target: {specs['scenes_per_episode']} scenes × {specs['clips_per_scene']} clips = ~{specs['total_clips']} clips
-  - Each scene gets {specs['clips_per_scene']} clips ({specs['scene_range']}s per scene)
-- HARD RULE: the SUM of all clip duration_seconds MUST NOT exceed {specs['max_total_seconds']}s. If it does, REDUCE clip count or shorten clips.
+  - Total budget: {specs["max_total_seconds"]}s
+  - Clip duration: {specs["clip_range"]}s each (default {specs["clip_default"]}s)
+  - Target: {specs["scenes_per_episode"]} scenes × {specs["clips_per_scene"]} clips = ~{specs["total_clips"]} clips
+  - Each scene gets {specs["clips_per_scene"]} clips ({specs["scene_range"]}s per scene)
+- HARD RULE: the SUM of all clip duration_seconds MUST NOT exceed {specs["max_total_seconds"]}s. If it does, REDUCE clip count or shorten clips.
 - Prefer FEWER clips per scene to minimize visual inconsistency between clips.
-- The sum of all scene duration_seconds MUST equal exactly {specs['max_total_seconds']}.
-- All time_range values MUST fit within 0:00 to {specs['max_total_seconds'] // 60}:{specs['max_total_seconds'] % 60:02d}. Do NOT exceed {specs['max_total_seconds'] // 60}:{specs['max_total_seconds'] % 60:02d}.
+- The sum of all scene duration_seconds MUST equal exactly {specs["max_total_seconds"]}.
+- All time_range values MUST fit within 0:00 to {specs["max_total_seconds"] // 60}:{specs["max_total_seconds"] % 60:02d}. Do NOT exceed {specs["max_total_seconds"] // 60}:{specs["max_total_seconds"] % 60:02d}.
 
 ## Output Requirements
 Output ONLY valid YAML (no markdown fences, no explanation) in this exact structure:
@@ -538,8 +551,8 @@ Output ONLY valid YAML (no markdown fences, no explanation) in this exact struct
 episode: {episode_number}
 title: "<english title>"
 title_zh: "<chinese title>"
-duration_seconds: {specs['max_total_seconds']}
-scene_count: <{specs['scenes_per_episode']}>
+duration_seconds: {specs["max_total_seconds"]}
+scene_count: <{specs["scenes_per_episode"]}>
 scenes:
   - scene_number: 1
     title: "<scene title>"
@@ -557,7 +570,7 @@ scenes:
     camera_notes: "<camera angles, movements, transitions>"
     mood: "<emotional tone>"
     music_notes: "<music/sfx direction>"
-  # ... more scenes (last scene's time_range MUST end at or before {specs['max_total_seconds'] // 60}:{specs['max_total_seconds'] % 60:02d})
+  # ... more scenes (last scene's time_range MUST end at or before {specs["max_total_seconds"] // 60}:{specs["max_total_seconds"] % 60:02d})
 voting_options:
   - id: "a"
     label: "<option text>"
@@ -591,10 +604,12 @@ tone:
         log.error(f"Raw LLM output saved to {debug_path}")
         sys.exit(1)
 
-    log.info(f"Script generated: {script.get('title', 'untitled')} with {len(script.get('scenes', []))} scenes")
+    log.info(
+        f"Script generated: {script.get('title', 'untitled')} with {len(script.get('scenes', []))} scenes"
+    )
 
     # Post-generation validation: enforce target duration
-    _enforce_script_duration(script, target=specs['max_total_seconds'])
+    _enforce_script_duration(script, target=specs["max_total_seconds"])
 
     return script
 
@@ -640,7 +655,9 @@ def _enforce_script_duration(script: dict, target: int = 120) -> None:
     log.info(f"Adjusted script: {len(scenes)} scenes, total {int(elapsed)}s")
 
 
-def generate_scenes_with_llm(episode_number: int, story_slug: str, model_override: str | None = None) -> dict:
+def generate_scenes_with_llm(
+    episode_number: int, story_slug: str, model_override: str | None = None
+) -> dict:
     """Call director agent via LLM to plan scenes with visual prompts."""
     ep_dir = episode_dir(episode_number, story_slug)
     script_path = ep_dir / "script.yaml"
@@ -664,7 +681,10 @@ def generate_scenes_with_llm(episode_number: int, story_slug: str, model_overrid
     # Extract expected values from script for validation (needed in prompt)
     expected_scene_count = script.get("scene_count", len(script.get("scenes", [])))
     expected_total_duration = script.get("duration_seconds", 120)
-    script_scene_durations = {s.get("scene_number", i + 1): s.get("duration_seconds", 0) for i, s in enumerate(script.get("scenes", []))}
+    script_scene_durations = {
+        s.get("scene_number", i + 1): s.get("duration_seconds", 0)
+        for i, s in enumerate(script.get("scenes", []))
+    }
 
     user_message = f"""Break down this episode script into detailed scene-by-scene video generation prompts.
 
@@ -677,15 +697,15 @@ def generate_scenes_with_llm(episode_number: int, story_slug: str, model_overrid
 {previous_episodes}
 
 ## Story Context
-- Title: {episode_context.get('story_title', '')}
-- Description: {episode_context.get('story_description', '')}
-- Background: {episode_context.get('story_background', '')}
+- Title: {episode_context.get("story_title", "")}
+- Description: {episode_context.get("story_description", "")}
+- Background: {episode_context.get("story_background", "")}
 
 ## Episode Direction (Admin Prompt — the user's creative vision for this episode)
-{episode_context.get('admin_prompt', 'No episode direction provided.')}
+{episode_context.get("admin_prompt", "No episode direction provided.")}
 
 ## Audience Engagement from Previous Episode (votes + comments — for reference, script already incorporates these)
-{engagement if engagement else 'No previous engagement data available.'}
+{engagement if engagement else "No previous engagement data available."}
 
 ## Style Guide
 ```yaml
@@ -699,11 +719,11 @@ def generate_scenes_with_llm(episode_number: int, story_slug: str, model_overrid
 {locations}
 
 ## Video Specifications (STRICTLY ENFORCE — violations will be rejected)
-- Episode total: {specs['max_total_seconds']}s. Default clip duration: {specs['clip_default']}s.
-- Clip duration range: {specs['clip_range']}s. You MAY vary clip durations within this range to fit the budget.
-- Target: {specs['clips_per_scene']} clips per scene ({specs['scene_range']}s per scene). Prefer FEWER clips to minimize visual inconsistency.
-- HARD RULE: the SUM of all clip duration_seconds MUST NOT exceed {specs['max_total_seconds']}s. Count carefully. If over budget, reduce clip count or shorten individual clips.
-- Each clip MUST have `duration_seconds` set to a value within {specs['clip_range']}s
+- Episode total: {specs["max_total_seconds"]}s. Default clip duration: {specs["clip_default"]}s.
+- Clip duration range: {specs["clip_range"]}s. You MAY vary clip durations within this range to fit the budget.
+- Target: {specs["clips_per_scene"]} clips per scene ({specs["scene_range"]}s per scene). Prefer FEWER clips to minimize visual inconsistency.
+- HARD RULE: the SUM of all clip duration_seconds MUST NOT exceed {specs["max_total_seconds"]}s. Count carefully. If over budget, reduce clip count or shorten individual clips.
+- Each clip MUST have `duration_seconds` set to a value within {specs["clip_range"]}s
 - Clip N+1 MUST reference last frame of clip N for continuity
 - Resolution: 720p, FPS: 24, Aspect ratio: 9:16 (vertical)
 - {negative_prompt_instruction}
@@ -803,19 +823,19 @@ def generate_scenes_with_llm(episode_number: int, story_slug: str, model_overrid
 
 ## Output Requirements
 - Generate EXACTLY {expected_scene_count} scenes (matching the script). Do NOT add extra scenes beyond the script.
-- BUDGET CHECK: sum of ALL clip duration_seconds must be ≤ {specs['max_total_seconds']}s. Each clip: {specs['clip_range']}s. If over budget, reduce clip count or shorten clips.
+- BUDGET CHECK: sum of ALL clip duration_seconds must be ≤ {specs["max_total_seconds"]}s. Each clip: {specs["clip_range"]}s. If over budget, reduce clip count or shorten clips.
 - Output ONLY valid YAML (no markdown fences, no explanation). Follow the scene_prompt format from your instructions.
 
 scenes:
   - scene_number: 1
-    total_clips: <{specs['clips_per_scene']}>
-    target_duration: <{specs['scene_range']}>
+    total_clips: <{specs["clips_per_scene"]}>
+    target_duration: <{specs["scene_range"]}>
     style: "<from style guide>"
     character_refs: ["<character names in scene>"]
     location_ref: "<location>"
     clips:
       - clip_number: 1
-        duration_seconds: <{specs['clip_range']}s — choose based on action needed>
+        duration_seconds: <{specs["clip_range"]}s — choose based on action needed>
         timeline:
           - time: "[00:00 to 00:02]"
             detail: "<What happens in this time range — character actions, facial expressions, gestures>"
@@ -922,8 +942,10 @@ consistency_notes: "<key visual anchors across all scenes>"
             while scene_dur > target and len(clips) > 1:
                 removed = clips.pop()
                 scene_dur -= removed.get("duration_seconds", clip_default)
-                log.info(f"  Per-scene trim: removed clip {removed.get('clip_number', '?')} from scene {scene.get('scene_number', '?')} "
-                         f"({removed.get('duration_seconds', clip_default)}s) — scene was {scene_dur + removed.get('duration_seconds', clip_default)}s vs target {target}s")
+                log.info(
+                    f"  Per-scene trim: removed clip {removed.get('clip_number', '?')} from scene {scene.get('scene_number', '?')} "
+                    f"({removed.get('duration_seconds', clip_default)}s) — scene was {scene_dur + removed.get('duration_seconds', clip_default)}s vs target {target}s"
+                )
             scene["total_clips"] = len(clips)
             scene["target_duration"] = sum(c.get("duration_seconds", clip_default) for c in clips)
 
@@ -935,7 +957,9 @@ consistency_notes: "<key visual anchors across all scenes>"
         )
 
         if total_duration > max_total:
-            log.warning(f"Scene plan total {total_duration}s exceeds {max_total}s budget. Trimming clips.")
+            log.warning(
+                f"Scene plan total {total_duration}s exceeds {max_total}s budget. Trimming clips."
+            )
             while True:
                 current_total = sum(
                     clip.get("duration_seconds", clip_default)
@@ -945,12 +969,16 @@ consistency_notes: "<key visual anchors across all scenes>"
                 if current_total <= max_total:
                     break
                 # Find scene with most clips and remove its last clip
-                scenes_by_clips = sorted(scenes, key=lambda s: len(s.get("clips", [])), reverse=True)
+                scenes_by_clips = sorted(
+                    scenes, key=lambda s: len(s.get("clips", [])), reverse=True
+                )
                 trimmed = False
                 for s in scenes_by_clips:
                     if len(s.get("clips", [])) > 1:
                         removed = s["clips"].pop()
-                        log.info(f"  Trimmed clip {removed.get('clip_number', '?')} from scene {s.get('scene_number', '?')} ({removed.get('duration_seconds', clip_default)}s)")
+                        log.info(
+                            f"  Trimmed clip {removed.get('clip_number', '?')} from scene {s.get('scene_number', '?')} ({removed.get('duration_seconds', clip_default)}s)"
+                        )
                         trimmed = True
                         break
                 if not trimmed:
@@ -959,7 +987,9 @@ consistency_notes: "<key visual anchors across all scenes>"
             # Update total_clips and target_duration fields
             for s in scenes:
                 s["total_clips"] = len(s.get("clips", []))
-                s["target_duration"] = sum(c.get("duration_seconds", clip_default) for c in s.get("clips", []))
+                s["target_duration"] = sum(
+                    c.get("duration_seconds", clip_default) for c in s.get("clips", [])
+                )
 
         return scenes
 
@@ -978,6 +1008,7 @@ consistency_notes: "<key visual anchors across all scenes>"
     def _salvage_partial_yaml(text: str) -> dict | None:
         """Try to extract complete scenes from truncated YAML by trimming from the end."""
         import re as _re
+
         _text = text.strip()
         # Remove markdown fences if present
         _fence = _re.search(r"```(?:yaml|yml)?\s*\n(.*)", _text, _re.DOTALL)
@@ -987,17 +1018,21 @@ consistency_notes: "<key visual anchors across all scenes>"
         if _text.endswith("```"):
             _text = _text[:-3].strip()
         # Find all "- scene_number:" positions to know where each scene starts
-        scene_starts = [m.start() for m in _re.finditer(r"^\s{2,4}- scene_number:", _text, _re.MULTILINE)]
+        scene_starts = [
+            m.start() for m in _re.finditer(r"^\s{2,4}- scene_number:", _text, _re.MULTILINE)
+        ]
         if not scene_starts:
             return None
         # For single scene: try trimming incomplete clip entries from the end
         if len(scene_starts) == 1:
             # Find all clip_number markers within the scene
-            clip_starts = [m.start() for m in _re.finditer(r"^\s{6,8}- clip_number:", _text, _re.MULTILINE)]
+            clip_starts = [
+                m.start() for m in _re.finditer(r"^\s{6,8}- clip_number:", _text, _re.MULTILINE)
+            ]
             if len(clip_starts) >= 2:
                 # Try progressively removing the last clip(s)
                 for i in range(len(clip_starts) - 1, 0, -1):
-                    truncated = _text[:clip_starts[i]].rstrip()
+                    truncated = _text[: clip_starts[i]].rstrip()
                     try:
                         data = yaml.safe_load(truncated)
                         if isinstance(data, dict) and "scenes" in data and data["scenes"]:
@@ -1007,7 +1042,7 @@ consistency_notes: "<key visual anchors across all scenes>"
             return None
         # Multi-scene: try parsing with progressively fewer scenes (drop the last N)
         for i in range(len(scene_starts) - 1, 0, -1):
-            truncated = _text[:scene_starts[i]].rstrip()
+            truncated = _text[: scene_starts[i]].rstrip()
             try:
                 data = yaml.safe_load(truncated)
                 if isinstance(data, dict) and "scenes" in data and data["scenes"]:
@@ -1017,7 +1052,9 @@ consistency_notes: "<key visual anchors across all scenes>"
         return None
 
     # First call
-    raw_text = call_agent("director", user_message, max_tokens=MAX_TOKENS, model_override=model_override)
+    raw_text = call_agent(
+        "director", user_message, max_tokens=MAX_TOKENS, model_override=model_override
+    )
 
     # Collect all complete scenes across calls
     all_complete_scenes: list = []
@@ -1033,6 +1070,7 @@ consistency_notes: "<key visual anchors across all scenes>"
             # Try parsing as bare YAML list and wrap it
             try:
                 import re as _re
+
                 _text = raw_text.strip()
                 # Strip markdown fences (greedy — take everything after opening fence)
                 _fence = _re.search(r"```(?:yaml|yml)?\s*\n(.*)", _text, _re.DOTALL)
@@ -1042,12 +1080,19 @@ consistency_notes: "<key visual anchors across all scenes>"
                 if _text.endswith("```"):
                     _text = _text[:-3].strip()
                 bare_data = yaml.safe_load(_text)
-                if isinstance(bare_data, list) and bare_data and isinstance(bare_data[0], dict) and "scene_number" in bare_data[0]:
+                if (
+                    isinstance(bare_data, list)
+                    and bare_data
+                    and isinstance(bare_data[0], dict)
+                    and "scene_number" in bare_data[0]
+                ):
                     parsed = {"scenes": bare_data}
                     log.info(f"Parsed continuation as bare scene list ({len(bare_data)} scenes)")
                 elif isinstance(bare_data, dict) and "scenes" in bare_data:
                     parsed = bare_data
-                    log.info(f"Parsed continuation after fence stripping ({len(bare_data.get('scenes', []))} scenes)")
+                    log.info(
+                        f"Parsed continuation after fence stripping ({len(bare_data.get('scenes', []))} scenes)"
+                    )
             except Exception:
                 pass
 
@@ -1056,7 +1101,9 @@ consistency_notes: "<key visual anchors across all scenes>"
                 salvaged = _salvage_partial_yaml(raw_text)
                 if salvaged:
                     parsed = salvaged
-                    log.info(f"Salvaged {len(salvaged.get('scenes', []))} scenes from truncated YAML")
+                    log.info(
+                        f"Salvaged {len(salvaged.get('scenes', []))} scenes from truncated YAML"
+                    )
                 else:
                     log.warning(f"YAML parse failed on attempt {attempt}: {e}")
                     break
@@ -1072,7 +1119,9 @@ consistency_notes: "<key visual anchors across all scenes>"
 
         if new_scenes:
             all_complete_scenes.extend(new_scenes)
-            log.info(f"Got {len(new_scenes)} new complete scenes (total: {len(all_complete_scenes)}/{expected_scene_count})")
+            log.info(
+                f"Got {len(new_scenes)} new complete scenes (total: {len(all_complete_scenes)}/{expected_scene_count})"
+            )
         else:
             log.warning(f"Continuation {attempt} produced no new complete scenes. Stopping.")
             break
@@ -1094,7 +1143,9 @@ consistency_notes: "<key visual anchors across all scenes>"
                 scene_dur = sum(c.get("duration_seconds", 0) for c in scene.get("clips", []))
                 location = scene.get("location_ref", "")
                 style = scene.get("style", "")
-                scene_summaries.append(f"  Scene {sn}: {clip_count} clips, {scene_dur}s, location='{location}', style='{style}'")
+                scene_summaries.append(
+                    f"  Scene {sn}: {clip_count} clips, {scene_dur}s, location='{location}', style='{style}'"
+                )
 
             missing_scenes_info = []
             for sn in range(missing_start, expected_scene_count + 1):
@@ -1102,7 +1153,9 @@ consistency_notes: "<key visual anchors across all scenes>"
                 if s_info:
                     missing_scenes_info.append(f"  Scene {sn}: {s_info}s")
 
-            last_scene_yaml = yaml.dump(all_complete_scenes[-1], default_flow_style=False, allow_unicode=True)[:800]
+            last_scene_yaml = yaml.dump(
+                all_complete_scenes[-1], default_flow_style=False, allow_unicode=True
+            )[:800]
 
             continuation_prompt = f"""Generate scenes {missing_start} through {expected_scene_count} for this episode.
 
@@ -1125,7 +1178,12 @@ Use `duration_seconds` (not `duration`) for clip durations.
 Include `consistency_notes` at the end. No markdown fences, no explanation.
 
 {language_instruction}"""
-            raw_text = call_agent("director", continuation_prompt, max_tokens=MAX_TOKENS, model_override=model_override)
+            raw_text = call_agent(
+                "director",
+                continuation_prompt,
+                max_tokens=MAX_TOKENS,
+                model_override=model_override,
+            )
         else:
             break
 
@@ -1143,17 +1201,23 @@ Include `consistency_notes` at the end. No markdown fences, no explanation.
     # Sort scenes by scene_number and trim to expected count
     all_complete_scenes.sort(key=lambda s: s.get("scene_number", 0))
     if len(all_complete_scenes) > expected_scene_count:
-        log.warning(f"LLM generated {len(all_complete_scenes)} scenes but script has {expected_scene_count}. Trimming extras.")
+        log.warning(
+            f"LLM generated {len(all_complete_scenes)} scenes but script has {expected_scene_count}. Trimming extras."
+        )
         all_complete_scenes = all_complete_scenes[:expected_scene_count]
     total_clip_duration = sum(
         sum(c.get("duration_seconds", 0) for c in scene.get("clips", []))
         for scene in all_complete_scenes
     )
-    log.info(f"Final: {len(all_complete_scenes)}/{expected_scene_count} scenes, "
-             f"total clip duration: {total_clip_duration}s (target: {expected_total_duration}s)")
+    log.info(
+        f"Final: {len(all_complete_scenes)}/{expected_scene_count} scenes, "
+        f"total clip duration: {total_clip_duration}s (target: {expected_total_duration}s)"
+    )
 
     if len(all_complete_scenes) < expected_scene_count:
-        log.warning(f"Proceeding with {len(all_complete_scenes)} scenes (missing {expected_scene_count - len(all_complete_scenes)})")
+        log.warning(
+            f"Proceeding with {len(all_complete_scenes)} scenes (missing {expected_scene_count - len(all_complete_scenes)})"
+        )
 
     scenes_data = {"scenes": all_complete_scenes}
     if consistency_notes:
@@ -1203,7 +1267,9 @@ def _show_referenced_characters(script: dict, story_slug: str) -> None:
         log.info(f"No existing character files match episode characters: {referenced_names}")
         return
 
-    log.info(f"=== Referenced Characters ({len(matched)}/{len(referenced_names)} found on disk) ===")
+    log.info(
+        f"=== Referenced Characters ({len(matched)}/{len(referenced_names)} found on disk) ==="
+    )
     for stem, fpath in sorted(matched.items()):
         print(f"\n--- {stem} ({fpath.name}) ---")
         print(fpath.read_text(encoding="utf-8"))
@@ -1219,7 +1285,9 @@ def _show_referenced_characters(script: dict, story_slug: str) -> None:
         log.info(f"Characters without existing files (will be newly designed): {unmatched}")
 
 
-def generate_characters_with_llm(episode_number: int, story_slug: str, model_override: str | None = None) -> dict:
+def generate_characters_with_llm(
+    episode_number: int, story_slug: str, model_override: str | None = None
+) -> dict:
     """Call character-designer agent via LLM to produce character consistency sheets."""
     ep_dir = episode_dir(episode_number, story_slug)
     script_path = ep_dir / "script.yaml"
@@ -1250,9 +1318,9 @@ def generate_characters_with_llm(episode_number: int, story_slug: str, model_ove
 {previous_episodes}
 
 ## Story Context
-- Title: {episode_context.get('story_title', '')}
-- Description: {episode_context.get('story_description', '')}
-- Background: {episode_context.get('story_background', '')}
+- Title: {episode_context.get("story_title", "")}
+- Description: {episode_context.get("story_description", "")}
+- Background: {episode_context.get("story_background", "")}
 
 ## Style Guide
 ```yaml
@@ -1328,11 +1396,13 @@ characters:
             vid = char.get("voice_asset_id", "")
             # Strip accidental asset:// prefix if LLM added it
             if vid.startswith("asset://"):
-                vid = vid[len("asset://"):]
+                vid = vid[len("asset://") :]
                 char["voice_asset_id"] = vid
             if vid not in valid_voice_ids:
                 char_name = char.get("name", "unknown")
-                log.warning(f"Character '{char_name}' has invalid voice_asset_id '{vid}', clearing it.")
+                log.warning(
+                    f"Character '{char_name}' has invalid voice_asset_id '{vid}', clearing it."
+                )
                 char.pop("voice_asset_id", None)
 
     # Save character sheets
@@ -1371,7 +1441,9 @@ characters:
     return chars_data
 
 
-def edit_character_yaml_with_llm(char: dict, edit_prompt: str, story_slug: str, model_override: str | None = None) -> dict:
+def edit_character_yaml_with_llm(
+    char: dict, edit_prompt: str, story_slug: str, model_override: str | None = None
+) -> dict:
     """Use LLM to edit a character YAML based on a user's natural language instruction.
 
     Returns the updated character dict.
@@ -1423,7 +1495,9 @@ Output ONLY valid YAML (no markdown fences, no extra text). Return the full char
     return updated
 
 
-def generate_locations_with_llm(episode_number: int, story_slug: str, model_override: str | None = None) -> dict:
+def generate_locations_with_llm(
+    episode_number: int, story_slug: str, model_override: str | None = None
+) -> dict:
     """Call director agent via LLM to design locations, then generate reference images."""
     ep_dir = episode_dir(episode_number, story_slug)
     scenes_path = ep_dir / "scenes_breakdown.yaml"
@@ -1454,9 +1528,9 @@ Each location needs enough visual detail that an AI image generator can produce 
 ```
 
 ## Story Context
-- Title: {episode_context.get('story_title', '')}
-- Description: {episode_context.get('story_description', '')}
-- Background: {episode_context.get('story_background', '')}
+- Title: {episode_context.get("story_title", "")}
+- Description: {episode_context.get("story_description", "")}
+- Background: {episode_context.get("story_background", "")}
 
 ## Style Guide
 ```yaml
@@ -1520,7 +1594,9 @@ locations:
 
         # Skip locations that already have both YAML and image
         if loc_yaml_path.exists() and image_path.exists():
-            log.info(f"Location '{loc.get('name', slug)}' already exists with image, skipping image gen.")
+            log.info(
+                f"Location '{loc.get('name', slug)}' already exists with image, skipping image gen."
+            )
             save_yaml(loc, loc_yaml_path)
             loc["reference_image"] = str(image_path)
             continue
@@ -1598,7 +1674,9 @@ def generate_location_image(loc: dict, story_slug: str) -> Path | None:
     return None
 
 
-def _generate_location_image_seedream(prompt: str, output_path: Path, api_key: str, negative_prompt: str = "") -> Path | None:
+def _generate_location_image_seedream(
+    prompt: str, output_path: Path, api_key: str, negative_prompt: str = ""
+) -> Path | None:
     """Generate location image using BytePlus Ark Seedream API (landscape format)."""
     import requests as req
     from requests.adapters import HTTPAdapter
@@ -1628,7 +1706,9 @@ def _generate_location_image_seedream(prompt: str, output_path: Path, api_key: s
     try:
         resp = session.post(
             "https://ark.ap-southeast.bytepluses.com/api/v3/images/generations",
-            headers=headers, json=data, timeout=120,
+            headers=headers,
+            json=data,
+            timeout=120,
         )
         if resp.status_code != 200:
             log.warning(f"Seedream API error ({resp.status_code}): {resp.text[:300]}")
@@ -1649,6 +1729,7 @@ def _generate_location_image_seedream(prompt: str, output_path: Path, api_key: s
 
         if image_data:
             import base64
+
             output_path.write_bytes(base64.b64decode(image_data))
             log.info(f"  Seedream location image saved: {output_path}")
             return output_path
@@ -1692,7 +1773,9 @@ def generate_keyframes(episode_number: int, story_slug: str) -> dict:
         char_lookup[c.get("name", "")] = c.get("prompt_keywords", c.get("reference_prompt", ""))
     loc_lookup = {}
     for loc in locs_data.get("locations", []):
-        loc_lookup[loc.get("name", "")] = loc.get("prompt_keywords", loc.get("reference_prompt", ""))
+        loc_lookup[loc.get("name", "")] = loc.get(
+            "prompt_keywords", loc.get("reference_prompt", "")
+        )
 
     keyframes_dir = ep_dir / "keyframes"
     keyframes_dir.mkdir(parents=True, exist_ok=True)
@@ -1758,6 +1841,7 @@ def generate_keyframes(episode_number: int, story_slug: str) -> dict:
             if prev_end_path and prev_end_path.exists():
                 # Copy previous clip's end frame as this clip's start
                 import shutil
+
                 shutil.copy2(prev_end_path, start_path)
                 log.info(f"  Scene {scene_num} Clip {clip_num}: start = previous clip end (copied)")
                 clip_keyframe_info["keyframes"]["start"] = str(start_path)
@@ -1767,7 +1851,9 @@ def generate_keyframes(episode_number: int, story_slug: str) -> dict:
                     if img:
                         clip_keyframe_info["keyframes"]["start"] = str(img)
                     else:
-                        log.warning(f"  Failed to generate start keyframe for scene {scene_num} clip {clip_num}")
+                        log.warning(
+                            f"  Failed to generate start keyframe for scene {scene_num} clip {clip_num}"
+                        )
                 else:
                     log.info(f"  Scene {scene_num} Clip {clip_num}: start already exists, skipping")
                     clip_keyframe_info["keyframes"]["start"] = str(start_path)
@@ -1779,7 +1865,9 @@ def generate_keyframes(episode_number: int, story_slug: str) -> dict:
                 if img:
                     clip_keyframe_info["keyframes"]["middle"] = str(img)
                 else:
-                    log.warning(f"  Failed to generate middle keyframe for scene {scene_num} clip {clip_num}")
+                    log.warning(
+                        f"  Failed to generate middle keyframe for scene {scene_num} clip {clip_num}"
+                    )
             else:
                 log.info(f"  Scene {scene_num} Clip {clip_num}: middle already exists, skipping")
                 clip_keyframe_info["keyframes"]["middle"] = str(middle_path)
@@ -1791,7 +1879,9 @@ def generate_keyframes(episode_number: int, story_slug: str) -> dict:
                 if img:
                     clip_keyframe_info["keyframes"]["end"] = str(img)
                 else:
-                    log.warning(f"  Failed to generate end keyframe for scene {scene_num} clip {clip_num}")
+                    log.warning(
+                        f"  Failed to generate end keyframe for scene {scene_num} clip {clip_num}"
+                    )
             else:
                 log.info(f"  Scene {scene_num} Clip {clip_num}: end already exists, skipping")
                 clip_keyframe_info["keyframes"]["end"] = str(end_path)
@@ -1807,7 +1897,9 @@ def generate_keyframes(episode_number: int, story_slug: str) -> dict:
     return keyframe_results
 
 
-def _generate_keyframe_image(prompt: str, output_path: Path, negative_prompt: str = "") -> Path | None:
+def _generate_keyframe_image(
+    prompt: str, output_path: Path, negative_prompt: str = ""
+) -> Path | None:
     """Generate a single keyframe image using Seedream or HuggingFace SD."""
     ark_api_key = os.environ.get("ARK_API_KEY")
     if ark_api_key:
@@ -1825,7 +1917,9 @@ def _generate_keyframe_image(prompt: str, output_path: Path, negative_prompt: st
     return None
 
 
-def _generate_keyframe_seedream(prompt: str, output_path: Path, api_key: str, negative_prompt: str = "") -> Path | None:
+def _generate_keyframe_seedream(
+    prompt: str, output_path: Path, api_key: str, negative_prompt: str = ""
+) -> Path | None:
     """Generate keyframe image using BytePlus Ark Seedream API (16:9 landscape)."""
     import requests as req
     from requests.adapters import HTTPAdapter
@@ -1854,7 +1948,9 @@ def _generate_keyframe_seedream(prompt: str, output_path: Path, api_key: str, ne
     try:
         resp = session.post(
             "https://ark.ap-southeast.bytepluses.com/api/v3/images/generations",
-            headers=headers, json=data, timeout=120,
+            headers=headers,
+            json=data,
+            timeout=120,
         )
         if resp.status_code != 200:
             log.warning(f"Seedream keyframe API error ({resp.status_code}): {resp.text[:300]}")
@@ -1875,6 +1971,7 @@ def _generate_keyframe_seedream(prompt: str, output_path: Path, api_key: str, ne
 
         if image_data:
             import base64
+
             output_path.write_bytes(base64.b64decode(image_data))
             log.info(f"  Keyframe saved: {output_path}")
             return output_path
@@ -1975,6 +2072,7 @@ def _remove_white_background(image_path: Path, threshold: int = 240) -> None:
     """Convert near-white background pixels to transparent in a PNG image."""
     try:
         from PIL import Image
+
         img = Image.open(image_path).convert("RGBA")
         pixels = img.load()
         w, h = img.size
@@ -1991,9 +2089,10 @@ def _remove_white_background(image_path: Path, threshold: int = 240) -> None:
         log.warning(f"Background removal failed: {e}")
 
 
-def _generate_avatar_seedream(prompt: str, output_path: Path, api_key: str, negative_prompt: str = "") -> Path | None:
+def _generate_avatar_seedream(
+    prompt: str, output_path: Path, api_key: str, negative_prompt: str = ""
+) -> Path | None:
     """Generate avatar using BytePlus Ark Seedream API."""
-    import time
     import requests as req
     from requests.adapters import HTTPAdapter
     from urllib3.util.retry import Retry
@@ -2022,7 +2121,9 @@ def _generate_avatar_seedream(prompt: str, output_path: Path, api_key: str, nega
     try:
         resp = session.post(
             "https://ark.ap-southeast.bytepluses.com/api/v3/images/generations",
-            headers=headers, json=data, timeout=120,
+            headers=headers,
+            json=data,
+            timeout=120,
         )
         if resp.status_code != 200:
             log.warning(f"Seedream API error ({resp.status_code}): {resp.text[:300]}")
@@ -2045,6 +2146,7 @@ def _generate_avatar_seedream(prompt: str, output_path: Path, api_key: str, nega
 
         if image_data:
             import base64
+
             output_path.write_bytes(base64.b64decode(image_data))
             log.info(f"  Seedream avatar saved: {output_path}")
             return output_path
@@ -2056,12 +2158,16 @@ def _generate_avatar_seedream(prompt: str, output_path: Path, api_key: str, nega
         return None
 
 
-def _generate_avatar_huggingface(prompt: str, output_path: Path, hf_token: str, negative_prompt: str = "") -> Path | None:
+def _generate_avatar_huggingface(
+    prompt: str, output_path: Path, hf_token: str, negative_prompt: str = ""
+) -> Path | None:
     """Generate avatar using HuggingFace Stable Diffusion Inference API."""
     import requests as req
 
     # Use Stable Diffusion via HuggingFace Inference API (Router endpoint)
-    api_url = "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-base-1.0"
+    api_url = (
+        "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-base-1.0"
+    )
 
     headers = {
         "Authorization": f"Bearer {hf_token}",
@@ -2087,11 +2193,18 @@ def _generate_avatar_huggingface(prompt: str, output_path: Path, hf_token: str, 
             log.info(f"  HuggingFace avatar saved: {output_path}")
             return output_path
 
-        log.warning(f"HuggingFace returned unexpected content-type: {resp.headers.get('content-type')}")
+        log.warning(
+            f"HuggingFace returned unexpected content-type: {resp.headers.get('content-type')}"
+        )
         return None
     except Exception as e:
         log.warning(f"HuggingFace avatar generation failed: {e}")
         return None
+
+
+def generate_audio_with_llm(
+    episode_number: int, story_slug: str, *, model_override: str | None = None
+):
     """Call sound-designer agent via LLM to plan audio layers."""
     ep_dir = episode_dir(episode_number, story_slug)
     script_path = ep_dir / "script.yaml"
@@ -2127,9 +2240,9 @@ def _generate_avatar_huggingface(prompt: str, output_path: Path, hf_token: str, 
 ```
 
 ## Story Context
-- Title: {episode_context.get('story_title', '')}
-- Description: {episode_context.get('story_description', '')}
-- Background: {episode_context.get('story_background', '')}
+- Title: {episode_context.get("story_title", "")}
+- Description: {episode_context.get("story_description", "")}
+- Background: {episode_context.get("story_background", "")}
 
 ## Style Guide
 ```yaml
@@ -2200,11 +2313,18 @@ audio_plan:
     audio_dir.mkdir(parents=True, exist_ok=True)
     save_yaml(audio_data, ep_dir / "audio_plan.yaml")
 
-    log.info(f"Audio plan complete: {len(audio_data.get('audio_plan', {}).get('scenes', []))} scene audio specs")
+    log.info(
+        f"Audio plan complete: {len(audio_data.get('audio_plan', {}).get('scenes', []))} scene audio specs"
+    )
     return audio_data
 
 
-def run_pipeline(episode_number: int, votes_path: str | None = None, resume: bool = False, story_slug: str | None = None) -> None:
+def run_pipeline(
+    episode_number: int,
+    votes_path: str | None = None,
+    resume: bool = False,
+    story_slug: str | None = None,
+) -> None:
     """Run the episode generation pipeline with state tracking."""
     state = EpisodeState(episode_number)
 
@@ -2264,7 +2384,12 @@ def run_pipeline(episode_number: int, votes_path: str | None = None, resume: boo
     log.info(f"Episode {episode_number} pipeline status: {state.summary()}")
 
 
-def run_stage(episode_number: int, stage: str, story_slug: str | None = None, model_override: str | None = None) -> None:
+def run_stage(
+    episode_number: int,
+    stage: str,
+    story_slug: str | None = None,
+    model_override: str | None = None,
+) -> None:
     """Run a specific stage of the pipeline.
 
     Stages:
@@ -2286,15 +2411,20 @@ def run_stage(episode_number: int, stage: str, story_slug: str | None = None, mo
         model_override = os.environ.get("LLM_MODEL_OVERRIDE") or None
 
     # Set CONTENT_LANGUAGE env var for skill loading (language-specific skills)
-    lang_instruction = get_language_instruction(story_slug)
+    get_language_instruction(story_slug)  # side-effect: caches language
     story_lang = get_story_language(story_slug)
     os.environ["CONTENT_LANGUAGE"] = story_lang
 
-    log.info(f"Running stage '{stage}' for Episode {episode_number}" + (f" (model: {model_override})" if model_override else ""))
+    log.info(
+        f"Running stage '{stage}' for Episode {episode_number}"
+        + (f" (model: {model_override})" if model_override else "")
+    )
     ep_dir = episode_dir(episode_number, story_slug)
 
     # Log selected run dirs from env (passed by admin UI)
-    selected_dirs = {k: v for k, v in os.environ.items() if k.startswith("SELECTED_") and k.endswith("_DIR")}
+    selected_dirs = {
+        k: v for k, v in os.environ.items() if k.startswith("SELECTED_") and k.endswith("_DIR")
+    }
     if selected_dirs:
         log.info("Using selected run dirs from previous steps:")
         for k, v in sorted(selected_dirs.items()):
@@ -2318,7 +2448,9 @@ def run_stage(episode_number: int, stage: str, story_slug: str | None = None, mo
     if stage == "script":
         story_bible = load_story_bible(story_slug)
         votes = None
-        script = generate_script_with_llm(episode_number, story_slug, story_bible, votes, model_override=model_override)
+        script = generate_script_with_llm(
+            episode_number, story_slug, story_bible, votes, model_override=model_override
+        )
         # Save to run subfolder
         save_yaml(script, run_dir / "script.yaml")
         # Copy to root level as active output
@@ -2341,7 +2473,9 @@ def run_stage(episode_number: int, stage: str, story_slug: str | None = None, mo
         print("--- Scene Breakdown ---")
         print(yaml.dump(result, default_flow_style=False, allow_unicode=True))
     elif stage == "characters":
-        result = generate_characters_with_llm(episode_number, story_slug, model_override=model_override)
+        result = generate_characters_with_llm(
+            episode_number, story_slug, model_override=model_override
+        )
         # Save to run subfolder
         save_yaml(result, run_dir / "characters.yaml")
         # Root level is already saved by generate_characters_with_llm
@@ -2349,7 +2483,9 @@ def run_stage(episode_number: int, stage: str, story_slug: str | None = None, mo
         print("--- Character Sheets ---")
         print(yaml.dump(result, default_flow_style=False, allow_unicode=True))
     elif stage == "locations":
-        result = generate_locations_with_llm(episode_number, story_slug, model_override=model_override)
+        result = generate_locations_with_llm(
+            episode_number, story_slug, model_override=model_override
+        )
         # Save to run subfolder
         save_yaml(result, run_dir / "locations.yaml")
         log.info(f"Locations saved to {run_dir / 'locations.yaml'}")
@@ -2374,13 +2510,19 @@ def run_stage(episode_number: int, stage: str, story_slug: str | None = None, mo
         # Also run audio generation (MusicGen/Bark) in the same step
         log.info("Running audio generation from plan...")
         import subprocess
+
         gen_audio_script = Path(__file__).parent / "generate_audio.py"
         gen_cmd = [
-            sys.executable, str(gen_audio_script),
-            "--episode", str(episode_number),
-            "--story", story_slug,
-            "--plan", str(run_dir / "audio_plan.yaml"),
-            "--output-dir", str(run_dir),
+            sys.executable,
+            str(gen_audio_script),
+            "--episode",
+            str(episode_number),
+            "--story",
+            story_slug,
+            "--plan",
+            str(run_dir / "audio_plan.yaml"),
+            "--output-dir",
+            str(run_dir),
         ]
         # Pass through audio model override if set
         audio_model = os.environ.get("AUDIO_MODEL_OVERRIDE") or os.environ.get("AUDIO_MODEL")
@@ -2398,19 +2540,38 @@ def run_stage(episode_number: int, stage: str, story_slug: str | None = None, mo
 def main():
     parser = argparse.ArgumentParser(description="Generate episode script")
     parser.add_argument("--episode", type=int, required=True, help="Episode number")
-    parser.add_argument("--story", type=str, default=None, help="Story slug (e.g. the-ancient-without-a-plug)")
+    parser.add_argument(
+        "--story", type=str, default=None, help="Story slug (e.g. the-ancient-without-a-plug)"
+    )
     parser.add_argument("--votes", type=str, default=None, help="Path to vote results YAML")
     parser.add_argument("--resume", action="store_true", help="Resume from last checkpoint")
     parser.add_argument("--status", action="store_true", help="Show pipeline status")
-    parser.add_argument("--stage", type=str, default=None,
-                        choices=["script", "scenes", "characters", "locations", "keyframes", "audio"],
-                        help="Run a specific pipeline stage")
-    parser.add_argument("--model", type=str, default=None,
-                        help="LLM model override (format: provider/model, e.g. huggingface/Qwen/Qwen2.5-72B-Instruct)")
-    parser.add_argument("--regenerate-avatar", type=str, default=None, metavar="SLUG",
-                        help="Regenerate avatar for a single character by slug")
-    parser.add_argument("--avatar-prompt", type=str, default=None,
-                        help="Optional edit instruction for character YAML before regenerating avatar")
+    parser.add_argument(
+        "--stage",
+        type=str,
+        default=None,
+        choices=["script", "scenes", "characters", "locations", "keyframes", "audio"],
+        help="Run a specific pipeline stage",
+    )
+    parser.add_argument(
+        "--model",
+        type=str,
+        default=None,
+        help="LLM model override (format: provider/model, e.g. huggingface/Qwen/Qwen2.5-72B-Instruct)",
+    )
+    parser.add_argument(
+        "--regenerate-avatar",
+        type=str,
+        default=None,
+        metavar="SLUG",
+        help="Regenerate avatar for a single character by slug",
+    )
+    parser.add_argument(
+        "--avatar-prompt",
+        type=str,
+        default=None,
+        help="Optional edit instruction for character YAML before regenerating avatar",
+    )
     args = parser.parse_args()
 
     if args.status:
@@ -2433,7 +2594,9 @@ def main():
         char = load_yaml(str(char_yaml))
         # If user provided an edit prompt, use LLM to modify the character YAML first
         if args.avatar_prompt:
-            char = edit_character_yaml_with_llm(char, args.avatar_prompt, args.story, model_override=args.model)
+            char = edit_character_yaml_with_llm(
+                char, args.avatar_prompt, args.story, model_override=args.model
+            )
             save_yaml(char, char_yaml)
             log.info(f"Character YAML updated via LLM: {char_yaml}")
         avatar = generate_character_avatar(char, args.story)
