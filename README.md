@@ -23,35 +23,69 @@ An AI agent team that generates **interactive episodic animated short videos**. 
 
 ### Public-Facing Website
 
-| Story Page | Episode Player |
-|:---:|:---:|
-| ![Story Page](docs/images/StorySmithAI_gui_frontend_story_page.jpg) | ![Episode Page](docs/images/StorySmithAI_gui_frontend_episode_page.jpg) |
+**Story Page**
+
+![Story Page](docs/images/StorySmithAI_gui_frontend_story_page.jpg)
+
+**Episode Player**
+
+![Episode Page](docs/images/StorySmithAI_gui_frontend_episode_page.jpg)
 
 ### Admin Panel
 
-| Dashboard | Episode Generation Pipeline |
-|:---:|:---:|
-| ![Dashboard](docs/images/StorySmithAI_gui_admin_DashboardPage.jpg) | ![Pipeline](docs/images/StorySmithAI_gui_WriterAgent_ScriptStep.jpg) |
+**Dashboard**
+
+![Dashboard](docs/images/StorySmithAI_gui_admin_DashboardPage.jpg)
 
 ### Generation Pipeline Stages
 
-| Script (Writer) | Scenes (Director) | Characters (Designer) |
-|:---:|:---:|:---:|
-| ![Script](docs/images/StorySmithAI_gui_WriterAgent_ScriptStep.jpg) | ![Scenes](docs/images/StorySmithAI_gui_DirectorAgent_ScenesStep.jpg) | ![Characters](docs/images/StorySmithAI_gui_CharacterDesignerAgent_CharacterStep.jpg) |
+**1. Script — Writer Agent**
 
-| Video Gen (Artist) | Quality Inspection | Compose (Editor) |
-|:---:|:---:|:---:|
-| ![Video Gen](docs/images/StorySmithAI_gui_ArtistAgent_VideoGenStep.jpg) | ![Quality](docs/images/StorySmithAI_gui_QualityInspectionAgent_QualityStep.jpg) | ![Compose](docs/images/StorySmithAI_gui_EditorAgent_ComposeStep.jpg) |
+![Script](docs/images/StorySmithAI_gui_WriterAgent_ScriptStep.jpg)
 
-| Quality: AI Suggestions | Quality: Regeneration Comparison | Publish (Publisher) |
-|:---:|:---:|:---:|
-| ![AI Suggestions](docs/images/StorySmithAI_gui_QualityInspectionAgent_with_AIPromptSuggestion.jpg) | ![Regeneration](docs/images/StorySmithAI_gui_QualityInspectionAgent_with_Regeneration.jpg) | ![Publish](docs/images/StorySmithAI_gui_PublisherAgent_PublishStep.jpg) |
+**2. Scenes — Director Agent**
+
+![Scenes](docs/images/StorySmithAI_gui_DirectorAgent_ScenesStep.jpg)
+
+**3. Characters — Character Designer Agent**
+
+![Characters](docs/images/StorySmithAI_gui_CharacterDesignerAgent_CharacterStep.jpg)
+
+**4. Video Generation — Artist Agent**
+
+![Video Gen](docs/images/StorySmithAI_gui_ArtistAgent_VideoGenStep.jpg)
+
+**5. Quality Inspection — with AI Prompt Suggestions**
+
+![Quality](docs/images/StorySmithAI_gui_QualityInspectionAgent_QualityStep.jpg)
+
+![AI Suggestions](docs/images/StorySmithAI_gui_QualityInspectionAgent_with_AIPromptSuggestion.jpg)
+
+**5b. Quality Inspection — Regeneration Comparison**
+
+![Regeneration](docs/images/StorySmithAI_gui_QualityInspectionAgent_with_Regeneration.jpg)
+
+**6. Compose — Editor Agent**
+
+![Compose](docs/images/StorySmithAI_gui_EditorAgent_ComposeStep.jpg)
+
+**7. Publish — Publisher Agent**
+
+![Publish](docs/images/StorySmithAI_gui_PublisherAgent_PublishStep.jpg)
 
 ### Admin Management
 
-| Story Management | Episode Editor | Comment Moderation |
-|:---:|:---:|:---:|
-| ![Stories](docs/images/StorySmithAI_gui_admin_StoryManagementPage.jpg) | ![Episode Editor](docs/images/StorySmithAI_gui_admin_EpisodesEditorPage.jpg) | ![Comments](docs/images/StorySmithAI_gui_admin_CommentModerationPage.jpg) |
+**Story Management**
+
+![Stories](docs/images/StorySmithAI_gui_admin_StoryManagementPage.jpg)
+
+**Episode Editor**
+
+![Episode Editor](docs/images/StorySmithAI_gui_admin_EpisodesEditorPage.jpg)
+
+**Comment Moderation**
+
+![Comments](docs/images/StorySmithAI_gui_admin_CommentModerationPage.jpg)
 
 ## Architecture
 
