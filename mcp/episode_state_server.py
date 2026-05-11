@@ -7,6 +7,12 @@ Usage:
     python mcp/episode_state_server.py
 """
 
+# Copyright (c) 2026 Chong Kiat Lim. All rights reserved.
+# Licensed under CC BY-NC 4.0. See LICENSE for details.
+
+# Copyright (c) 2026 Chong Kiat Lim. All rights reserved.
+# Licensed under CC BY-NC 4.0. See LICENSE for details.
+
 import json
 import sys
 from pathlib import Path

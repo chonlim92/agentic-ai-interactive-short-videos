@@ -3,6 +3,12 @@
 Provides: project root resolution, config/YAML loading, logging setup.
 """
 
+# Copyright (c) 2026 Chong Kiat Lim. All rights reserved.
+# Licensed under CC BY-NC 4.0. See LICENSE for details.
+
+# Copyright (c) 2026 Chong Kiat Lim. All rights reserved.
+# Licensed under CC BY-NC 4.0. See LICENSE for details.
+
 import logging
 import sys
 from pathlib import Path

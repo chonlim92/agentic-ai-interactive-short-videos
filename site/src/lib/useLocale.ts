@@ -1,4 +1,6 @@
 "use client";
+// Copyright (c) 2026 Chong Kiat Lim. All rights reserved.
+// Licensed under CC BY-NC 4.0. See LICENSE for details.
 
 import { useState, useEffect } from "react";
 import type { Locale } from "./i18n";

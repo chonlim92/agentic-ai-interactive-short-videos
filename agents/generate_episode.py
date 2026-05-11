@@ -9,6 +9,12 @@ Usage:
     python agents/generate_episode.py --episode 1 --story my-story --stage script
 """
 
+# Copyright (c) 2026 Chong Kiat Lim. All rights reserved.
+# Licensed under CC BY-NC 4.0. See LICENSE for details.
+
+# Copyright (c) 2026 Chong Kiat Lim. All rights reserved.
+# Licensed under CC BY-NC 4.0. See LICENSE for details.
+
 import argparse
 import hashlib
 import json

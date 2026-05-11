@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Chong Kiat Lim. All rights reserved.
+// Licensed under CC BY-NC 4.0. See LICENSE for details.
 /**
  * StorySmith AI / 剧匠AI — JSON file-based store.
  * Supports multiple stories, each with episodes, voting, comments, and admin prompts.

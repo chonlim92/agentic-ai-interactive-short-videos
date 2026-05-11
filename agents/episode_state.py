@@ -12,6 +12,12 @@ Usage:
     state.complete_step("generate_script", result={"path": "script.yaml"})
 """
 
+# Copyright (c) 2026 Chong Kiat Lim. All rights reserved.
+# Licensed under CC BY-NC 4.0. See LICENSE for details.
+
+# Copyright (c) 2026 Chong Kiat Lim. All rights reserved.
+# Licensed under CC BY-NC 4.0. See LICENSE for details.
+
 from datetime import UTC, datetime
 
 from common import episode_dir, load_yaml, save_yaml, setup_logging

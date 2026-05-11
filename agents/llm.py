@@ -6,6 +6,12 @@ Injects project rules from CLAUDE.md and relevant skills.
 Learns new skills automatically when agents encounter new task types.
 """
 
+# Copyright (c) 2026 Chong Kiat Lim. All rights reserved.
+# Licensed under CC BY-NC 4.0. See LICENSE for details.
+
+# Copyright (c) 2026 Chong Kiat Lim. All rights reserved.
+# Licensed under CC BY-NC 4.0. See LICENSE for details.
+
 import os
 import sys
 import re

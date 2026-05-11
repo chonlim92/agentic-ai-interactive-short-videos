@@ -9,6 +9,12 @@ Usage:
     python agents/publish_site.py --episode 1 --story my-story --draft
 """
 
+# Copyright (c) 2026 Chong Kiat Lim. All rights reserved.
+# Licensed under CC BY-NC 4.0. See LICENSE for details.
+
+# Copyright (c) 2026 Chong Kiat Lim. All rights reserved.
+# Licensed under CC BY-NC 4.0. See LICENSE for details.
+
 import argparse
 import base64
 import json

@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Chong Kiat Lim. All rights reserved.
+// Licensed under CC BY-NC 4.0. See LICENSE for details.
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";

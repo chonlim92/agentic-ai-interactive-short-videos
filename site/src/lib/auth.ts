@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Chong Kiat Lim. All rights reserved.
+// Licensed under CC BY-NC 4.0. See LICENSE for details.
 import { cookies } from "next/headers";
 
 const ADMIN_COOKIE = "storysmith_admin_session";

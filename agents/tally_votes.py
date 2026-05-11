@@ -8,6 +8,12 @@ Usage:
     python agents/tally_votes.py --episode 1 --close  # Close voting
 """
 
+# Copyright (c) 2026 Chong Kiat Lim. All rights reserved.
+# Licensed under CC BY-NC 4.0. See LICENSE for details.
+
+# Copyright (c) 2026 Chong Kiat Lim. All rights reserved.
+# Licensed under CC BY-NC 4.0. See LICENSE for details.
+
 import argparse
 import os
 

@@ -4,6 +4,12 @@ Uses Pydantic to validate YAML configs at load time, catching
 typos, missing fields, and invalid values before they cause runtime errors.
 """
 
+# Copyright (c) 2026 Chong Kiat Lim. All rights reserved.
+# Licensed under CC BY-NC 4.0. See LICENSE for details.
+
+# Copyright (c) 2026 Chong Kiat Lim. All rights reserved.
+# Licensed under CC BY-NC 4.0. See LICENSE for details.
+
 from pydantic import BaseModel, Field
 
 # ---------------------------------------------------------------------------

@@ -9,6 +9,12 @@ Usage:
     python agents/generate_video.py --scene <path> --local  # Use local GPU pipeline
 """
 
+# Copyright (c) 2026 Chong Kiat Lim. All rights reserved.
+# Licensed under CC BY-NC 4.0. See LICENSE for details.
+
+# Copyright (c) 2026 Chong Kiat Lim. All rights reserved.
+# Licensed under CC BY-NC 4.0. See LICENSE for details.
+
 import argparse
 import os
 import sys

@@ -10,6 +10,12 @@ Usage:
     python agents/validate_quality.py --episode 1 --story my-story --review
 """
 
+# Copyright (c) 2026 Chong Kiat Lim. All rights reserved.
+# Licensed under CC BY-NC 4.0. See LICENSE for details.
+
+# Copyright (c) 2026 Chong Kiat Lim. All rights reserved.
+# Licensed under CC BY-NC 4.0. See LICENSE for details.
+
 import argparse
 import os
 import re
