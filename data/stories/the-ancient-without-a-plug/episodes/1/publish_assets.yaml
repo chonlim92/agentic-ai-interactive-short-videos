@@ -1,0 +1,19 @@
+episode_number: 1
+episode_posters:
+  horizontal_en: final\poster\poster_horizontal_en.png
+  horizontal_zh: final\poster\poster_horizontal_zh.png
+  vertical_en: final\poster\poster_vertical_en.png
+  vertical_zh: final\poster\poster_vertical_zh.png
+gallery:
+- final\gallery\gallery_01.jpg
+- final\gallery\gallery_02.jpg
+- final\gallery\gallery_03.jpg
+- final\gallery\gallery_04.jpg
+- final\gallery\gallery_05.jpg
+- final\gallery\gallery_06.jpg
+story_posters:
+  horizontal_en: C:\Users\chonlim\workspace\git_repos_building\agentic_ai\claude\agentic-ai-interactive-short-videos\data\stories\the-ancient-without-a-plug\poster\poster_horizontal_en.png
+  horizontal_zh: C:\Users\chonlim\workspace\git_repos_building\agentic_ai\claude\agentic-ai-interactive-short-videos\data\stories\the-ancient-without-a-plug\poster\poster_horizontal_zh.png
+  vertical_en: C:\Users\chonlim\workspace\git_repos_building\agentic_ai\claude\agentic-ai-interactive-short-videos\data\stories\the-ancient-without-a-plug\poster\poster_vertical_en.png
+  vertical_zh: C:\Users\chonlim\workspace\git_repos_building\agentic_ai\claude\agentic-ai-interactive-short-videos\data\stories\the-ancient-without-a-plug\poster\poster_vertical_zh.png
+story_slug: the-ancient-without-a-plug

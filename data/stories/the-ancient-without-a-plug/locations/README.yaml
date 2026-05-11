@@ -1,0 +1,20 @@
+# Locations Directory
+# Store one YAML file per unique location in the series.
+# These are referenced by @director and @artist for visual consistency across clips and episodes.
+#
+# Format: data/locations/<location_name>.yaml
+#
+# Example:
+# location:
+#   name: "Enchanted Forest"
+#   description: "Dense, magical forest with bioluminescent plants"
+#   time_variants:
+#     day: "Sunlight filtering through canopy, warm green tones"
+#     night: "Bioluminescent glow, blue-purple atmosphere"
+#   key_features:
+#     - "Ancient twisted trees with glowing moss"
+#     - "Stone path winding through undergrowth"
+#     - "Floating firefly-like particles"
+#   color_palette: ["#2d5a27", "#4a9e3f", "#7b3fa0", "#e8d44d"]
+#   prompt_keywords: "enchanted forest, bioluminescent, ancient trees, magical atmosphere"
+#   negative_keywords: "modern buildings, vehicles, technology"

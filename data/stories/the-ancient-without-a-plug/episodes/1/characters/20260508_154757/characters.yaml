@@ -1,0 +1,89 @@
+characters:
+- animation_style: 卡通动画风格，柔和色彩搭配，身体比例适中，表情丰富
+  appearance:
+    age: '22'
+    build: 苗条
+    distinguishing_features:
+    - 戴眼镜
+    - 经常咬笔帽
+    eyes: 棕色，大而有神
+    hair: 黑色，齐肩短发，有时扎成马尾
+    skin: 浅黄色
+  avatar_image: C:\Users\chonlim\workspace\git_repos_building\agentic_ai\claude\agentic-ai-interactive-short-videos\data\stories\the-ancient-without-a-plug\characters\avatars\xiao_xi.png
+  clothing:
+    accessories:
+    - 眼镜
+    - 智能手表
+    - 耳机
+    default_outfit: 穿着白色T恤，上面印有编程相关的图案，黑色休闲裤，脚穿白色运动鞋，手腕上戴着一块智能手表。
+    variants: []
+  color_palette:
+  - '#FFFFFF'
+  - '#000000'
+  - '#FFD700'
+  - '#00BFFF'
+  name: Xiao Xi
+  name_zh: 小溪
+  personality_visual_cues: 常有吐槽式的表情，喜欢咬笔帽，眼神中透露出聪明和机智
+  prompt_keywords: 小溪，22岁，黑色齐肩短发，戴眼镜，穿白色T恤和黑色休闲裤，脚穿白色运动鞋，戴智能手表，眼神灵动，表情丰富
+  reference_prompt: 生成一个22岁的女性角色，黑色齐肩短发，戴眼镜，穿着白色T恤和黑色休闲裤，脚穿白色运动鞋，手腕上戴着一块智能手表。她的眼神灵动，表情丰富，常有吐槽式的表情，喜欢咬笔帽。
+  role: protagonist
+  slug: xiao_xi
+  voice_asset_id: asset-20260225015133-tlfsj
+- animation_style: 卡通动画风格，柔和色彩搭配，身体比例适中，表情自然
+  appearance:
+    age: '35'
+    build: 健壮
+    distinguishing_features:
+    - 穿着古代服装
+    - 手持锄头
+    eyes: 棕色，深邃
+    hair: 黑色，短发
+    skin: 小麦色
+  avatar_image: C:\Users\chonlim\workspace\git_repos_building\agentic_ai\claude\agentic-ai-interactive-short-videos\data\stories\the-ancient-without-a-plug\characters\avatars\villager_a.png
+  clothing:
+    accessories:
+    - 锄头
+    default_outfit: 穿着宋代农民的服装，蓝色长袍，腰间系着布带，脚穿草鞋。
+    variants: []
+  color_palette:
+  - '#008000'
+  - '#8B4513'
+  - '#DEB887'
+  - '#A0522D'
+  name: Villager A
+  name_zh: 村民甲
+  personality_visual_cues: 表情自然，眼神深邃，显得朴实和勤劳
+  prompt_keywords: 村民甲，35岁，黑色短发，穿蓝色长袍，腰间系着布带，脚穿草鞋，手持锄头，表情自然，眼神深邃
+  reference_prompt: 生成一个35岁的男性角色，黑色短发，穿蓝色长袍，腰间系着布带，脚穿草鞋，手持锄头。他的表情自然，眼神深邃，显得朴实和勤劳。
+  role: supporting
+  slug: villager_a
+  voice_asset_id: asset-20260225015115-jk46b
+- animation_style: 卡通动画风格，柔和色彩搭配，身体比例适中，表情亲切
+  appearance:
+    age: '60'
+    build: 瘦削
+    distinguishing_features:
+    - 脸上有细纹
+    - 常带着微笑
+    eyes: 灰色，温和
+    hair: 白色，短发略显凌乱
+    skin: 苍白
+  avatar_image: C:\Users\chonlim\workspace\git_repos_building\agentic_ai\claude\agentic-ai-interactive-short-videos\data\stories\the-ancient-without-a-plug\characters\avatars\old_craftsman.png
+  clothing:
+    accessories:
+    - 老式圆形眼镜
+    default_outfit: 穿着传统长袍，质地陈旧但干净整齐，佩戴一副老式圆形眼镜。
+    variants: []
+  color_palette:
+  - '#708090'
+  - '#4682B4'
+  - '#D3D3D3'
+  name: Old Craftsman
+  name_zh: 老匠人
+  personality_visual_cues: 表情亲切，温和的眼神透露出智慧和善良
+  prompt_keywords: 老匠人，60岁，白色短发略显凌乱，穿传统长袍，脸上有细纹，常带着微笑
+  reference_prompt: 生成一个60岁的男性角色，白色短发略显凌乱，穿着传统长袍，佩戴老式圆形眼镜。脸上有细纹，常带着微笑，表情亲切，温和的眼神中透露出智慧和善良。
+  role: supporting
+  slug: old_craftsman
+  voice_asset_id: asset-20260225015209-lb6sf

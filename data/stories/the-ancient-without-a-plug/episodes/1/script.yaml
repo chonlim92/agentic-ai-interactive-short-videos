@@ -1,0 +1,139 @@
+duration_seconds: 120
+episode: 1
+scene_count: 6
+scenes:
+- camera_notes: 近景镜头，聚焦小溪的面部表情和手部动作。快速切换到窗外的蓝白光。
+  characters_present:
+  - 小溪
+  dialogue:
+  - character: 小溪
+    line: 再跑一次单元测试，别跟我出幺蛾子。
+    tone: 吐槽式
+  duration_seconds: 20
+  location: 小溪的卧室，深夜
+  mood: 紧张、荒诞
+  music_notes: 轻快的背景音乐，带有轻微的紧张感
+  scene_number: 1
+  time_of_day: 夜
+  time_range: 0:00-0:20
+  title: 深夜加班
+  visual_description: 小溪坐在桌前，面前摆着笔记本电脑、手机、咖啡杯和耳机。屏幕上滚动着代码，小溪一边喝咖啡一边敲击键盘。窗外突然闪过一道蓝白光，小溪下意识地拿起手机。
+- camera_notes: 特写镜头，聚焦手机屏幕的反射光。快速切换到山间夜色。
+  characters_present:
+  - 小溪
+  dialogue:
+  - character: 小溪
+    line: 这光是怎么回事？
+    tone: 疑惑
+  duration_seconds: 20
+  location: 山间夜色
+  mood: 神秘、紧张
+  music_notes: 神秘的背景音乐，带有悬疑感
+  scene_number: 2
+  time_of_day: 夜
+  time_range: 0:20-0:40
+  title: 神秘祠堂
+  visual_description: 小溪走出门外，看到远处的祠堂方向有一阵光影。她好奇地走向祠堂，手机屏幕反射着光线。画面转场到山间夜色，小溪眼前一黑。
+- camera_notes: 近景镜头，展示小溪的惊讶表情和村民的好奇表情。快速切换到周围的环境。
+  characters_present:
+  - 小溪
+  - 村民甲
+  - 其他村民
+  dialogue:
+  - character: 小溪
+    line: 我这是哪儿？
+    tone: 惊讶
+  - character: 村民甲
+    line: 这位姑娘，你是从哪里来的？
+    tone: 好奇
+  duration_seconds: 20
+  location: 宋朝小县城山脚
+  mood: 错位幽默
+  music_notes: 轻快的背景音乐，带有幽默感
+  scene_number: 3
+  time_of_day: 晨
+  time_range: 0:40-1:00
+  title: 意外穿越
+  visual_description: 清晨，小溪迷糊地醒来，发现自己在一个山脚下。周围是穿着宋代衣裳的村民在挑水、赶集。小溪惊呼，村民们围上来，对她手中的现代物品感到好奇。
+- camera_notes: 近景镜头，展示小溪的手机和笔记本。快速切换到村民的惊讶表情。
+  characters_present:
+  - 小溪
+  - 村民甲
+  dialogue:
+  - character: 小溪
+    line: 这就是程序员的末日：没有电。
+    tone: 自嘲
+  duration_seconds: 20
+  location: 山脚
+  mood: 焦虑、喜感
+  music_notes: 轻快的背景音乐，带有轻微的紧张感
+  scene_number: 4
+  time_of_day: 晨
+  time_range: 1:00-1:20
+  title: 设备危机
+  visual_description: 小溪掏出手机，发现电量只剩个位数，导航无法联网，笔记本也提示低电。她尝试用手势联网，村民们更加惊讶。
+- camera_notes: 近景镜头，展示老匠人的手指和小溪的思考表情。快速切换到村民的讨论。
+  characters_present:
+  - 小溪
+  - 老匠人
+  - 村民甲
+  dialogue:
+  - character: 老匠人
+    line: 这铜钱和铁锤，是不是有什么特别的用途？
+    tone: 好奇
+  - character: 小溪
+    line: 也许有用……
+    tone: 思考
+  duration_seconds: 20
+  location: 山脚
+  mood: 启发、希望
+  music_notes: 轻快的背景音乐，带有希望感
+  scene_number: 5
+  time_of_day: 晨
+  time_range: 1:20-1:40
+  title: 初次互动
+  visual_description: 一个好奇的老匠人注意到小溪口袋里的一枚铜币，村民们拿出铜钱和铁器讨论。老匠人指指铜钱和铁锤，小溪灵光一闪。
+- camera_notes: 特写镜头，聚焦小溪的手机和她的坚定表情。快速切换到村口的轮廓。
+  characters_present:
+  - 小溪
+  - 村民甲
+  - 老匠人
+  dialogue:
+  - character: 小溪
+    line: 先想办法别死机。
+    tone: 坚定
+  duration_seconds: 20
+  location: 山脚
+  mood: 悬念、决心
+  music_notes: 轻快的背景音乐，带有悬念感
+  scene_number: 6
+  time_of_day: 晨
+  time_range: 1:40-2:00
+  title: 悬念收尾
+  visual_description: 小溪看着手中的手机发出微弱的光亮，嘴角露出半笑，暗自下定决心。村口的老磨盘、水车、铁匠铺轮廓在远处。
+title: The Ancient Without a Plug
+title_zh: 大宋Debug：汴梁离线指南
+tone:
+  color_palette:
+  - '#FFEBCD'
+  - '#00BFFF'
+  - '#DEB887'
+  - '#8B4513'
+  - '#DEB887'
+  - '#FFE4B5'
+  - '#A0522D'
+  - '#7FFF00'
+  - '#D8BFD8'
+  mood: 轻松幽默、温馨
+  music_style: 轻快、带古风点缀的现代节拍
+  visual_style: 卡通动画风格，柔和色彩搭配
+voting_options:
+- description: 小溪决定利用铜钱和铁锤制作电化学电池，为手机充电。
+  id: a
+  label: 用铜钱和铁锤制作电化学电池
+- description: 小溪决定利用村里的水车和磨盘，尝试制作简易发电机为手机充电。
+  id: b
+  label: 寻找村里的水车和磨盘，尝试制作简易发电机
+- description: 小溪决定向村民求助，看看是否有其他可能的充电方法。
+  id: c
+  label: 向村民求助，寻找其他可能的充电方法

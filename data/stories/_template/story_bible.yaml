@@ -1,0 +1,36 @@
+# Story Bible - Interactive Short Video Series
+# This file defines the world, characters, and ongoing narrative state
+
+# Primary language of this story (auto-detected from content, or set manually)
+# Supported: "zh" (Chinese), "en" (English)
+# story_language: "en"
+
+series:
+  title: "TBD"
+  genre: "TBD"
+  style: "animated, stylized"
+  episode_duration_seconds: 120
+  target_scenes_per_episode: 8
+
+world:
+  setting: "TBD"
+  time_period: "TBD"
+  rules: []
+  locations: []
+
+characters: []
+  # - name: "Character Name"
+  #   role: protagonist
+  #   reference: data/characters/character_name.yaml
+
+narrative:
+  current_episode: 0
+  arc_summary: ""
+  pending_threads: []
+  resolved_threads: []
+
+tone:
+  visual_style: "TBD"
+  color_palette: []
+  mood: "TBD"
+  music_style: "TBD"

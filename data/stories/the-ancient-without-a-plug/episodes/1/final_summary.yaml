@@ -1,0 +1,45 @@
+character_states:
+- emotional_state: 未出场
+  name: 老匠人
+  name_en: Old Craftsman
+  relationships: 未与小溪相遇
+  status: 未知
+- emotional_state: 好奇
+  name: 村民甲
+  name_en: Villager A
+  relationships: 对小溪产生兴趣
+  status: 与小溪对话
+- emotional_state: 困惑但又激动
+  name: 小溪
+  name_en: Xiao Xi
+  relationships: 开始与村民互动
+  status: 在古代村庄
+continuity_notes: 下集需探索小溪在古代世界的适应过程，以及是否寻找恢复现代世界联系的方法。
+ending_state: '小溪坐在河边，被村民围绕，心中充满疑惑与期待，准备探索这个未知的古代世界。
+
+  '
+episode_number: 1
+key_events:
+- 小溪加班编程时失去网络连接
+- 她发现自己在古色古香的庭院里
+- 小溪被古代村民询问来历
+narrative_summary: '小溪加班编程，突然发现笔记本无法连上互联网，程序陷入停滞。她走出家门，漫步至古色古香的庭院，试图寻找解决方案。月光下，她的科技设备反而显得格外孤独，她决定进入庭院探索。在漫漫夜色中，小溪终于来到了一个村庄，被几个古代村民环绕。他们好奇地询问她的来历。小溪意识到自己可能进入了一个历史悠久的地方。
+
+  '
+narrative_summary_en: 'Xiao Xi is working late at night on her computer when she loses
+  internet connectivity, halting her programming progress. Frustrated, she decides
+  to explore outside and stumbles upon a quaint, ancient courtyard. Under the moonlight,
+  her modern gadgets feel out of place, prompting her to explore the courtyard further.
+  Eventually, she arrives at a village where several ancient villagers curiously question
+  her origins. Xiao Xi realizes she might have stepped into a historical setting.
+
+  '
+status: final
+title: 大宋Debug：汴梁离线指南
+title_en: The Ancient Without a Plug
+unresolved_threads:
+- 小溪如何恢复网络连接
+- 她为何会穿越到古代
+visual_style_notes: '动画风格明亮且细腻，以蓝绿色为主色调，夜间场景呈现一种梦幻般的质感，月光柔和且具诗意。
+
+  '

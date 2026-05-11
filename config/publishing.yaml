@@ -1,0 +1,25 @@
+# Publishing Configuration
+
+site:
+  framework: nextjs
+  deploy_target: vercel
+  url: ${SITE_URL}
+  deploy_token: ${SITE_DEPLOY_TOKEN}
+
+episode_page:
+  template: site/templates/episode.tsx
+  slug_format: "episode-{number}"
+
+voting:
+  enabled: true
+  deadline_hours: 72
+  min_options: 2
+  max_options: 4
+  allow_comments: true
+
+thumbnails:
+  width: 1280
+  height: 720
+  format: png
+  source: frame_grab  # frame_grab, custom, generated
+  frame_position: 0.3  # 30% into the video

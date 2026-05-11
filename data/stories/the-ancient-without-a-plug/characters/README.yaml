@@ -1,0 +1,5 @@
+# Characters Directory
+# Store one YAML file per character in the series.
+# These are referenced by @director and @artist for visual consistency across clips and episodes.
+#
+# See character-designer.agent.md for the full character sheet format.

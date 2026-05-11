@@ -1,0 +1,42 @@
+# Episode Composition Configuration
+
+episode:
+  target_duration_seconds: 120  # 2 minutes total
+  min_duration_seconds: 100     # Minimum acceptable
+  max_duration_seconds: 140     # Maximum acceptable
+
+composition:
+  intro:
+    enabled: true
+    duration_seconds: 5
+    template: assets/intro_template.mp4
+  outro:
+    enabled: true
+    duration_seconds: 5
+    template: assets/outro_template.mp4
+  transitions:
+    between_clips: seamless       # Within same scene: seamless blending
+    between_scenes: crossfade     # Between scenes: crossfade, cut, wipe, fade_to_black
+    clip_transition_seconds: 0.2  # Minimal for within-scene
+    scene_transition_seconds: 0.8 # Longer for between-scene
+
+# Multi-clip assembly (stitching short clips into longer scenes)
+stitching:
+  blend_overlap_frames: 8       # Frames to blend between clips
+  motion_interpolation: true    # Smooth motion between clips
+  color_match: true             # Match color grading across clips
+  audio_crossfade: true         # Smooth audio between clips
+
+audio:
+  music_volume: 0.6
+  sfx_volume: 0.8
+  narration_volume: 1.0
+  fade_in_seconds: 1.0
+  fade_out_seconds: 1.0
+
+export:
+  format: mp4
+  codec: h264
+  resolution: 720p
+  fps: 24
+  bitrate: "8M"  # Higher bitrate for 3-min episodes

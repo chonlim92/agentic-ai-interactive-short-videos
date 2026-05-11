@@ -1,0 +1,42 @@
+artifacts:
+  generate_script: &id001
+    path: C:\Users\chonlim\workspace\git_repos_building\agentic_ai\claude\agentic-ai-interactive-short-videos\data\episodes\1\script.yaml
+created_at: '2026-05-06T13:10:33.659688+00:00'
+current_step: ethics_review
+episode: 1
+errors: []
+status: in_progress
+steps:
+  add_audio:
+    status: not_started
+  character_references:
+    status: not_started
+  collect_votes:
+    reason: No votes path provided (first episode?)
+    status: skipped
+  compose_episode:
+    status: not_started
+  ethics_review:
+    status: not_started
+  final_review:
+    status: not_started
+  generate_clips:
+    status: not_started
+  generate_script:
+    completed_at: '2026-05-06T13:10:33.935380+00:00'
+    result: *id001
+    started_at: '2026-05-06T13:10:33.751767+00:00'
+    status: completed
+  post_assembly_validation:
+    status: not_started
+  pre_assembly_validation:
+    status: not_started
+  publish:
+    status: not_started
+  quality_gate_clips:
+    status: not_started
+  quality_gate_consistency:
+    status: not_started
+  scene_breakdown:
+    status: not_started
+updated_at: '2026-05-06T13:10:33.936385+00:00'

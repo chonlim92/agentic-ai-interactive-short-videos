@@ -1,0 +1,7 @@
+vote_results:
+  episode: 1
+  notes: Placeholder — site API unreachable
+  options: []
+  total_votes: 0
+  voting_open: false
+  winner: null

@@ -1,0 +1,60 @@
+# Global Style Guide
+# Ensures visual consistency across all clips and episodes
+
+animation_style:
+  type: "stylized animation"  # TBD: anime, pixar-like, watercolor, etc.
+  rendering: "3D rendered / 2D animated"  # TBD
+  detail_level: "medium-high"
+
+color_palette:
+  primary: []    # Main colors used throughout
+  secondary: []  # Accent colors
+  mood_palettes:
+    happy: []
+    tense: []
+    mysterious: []
+    sad: []
+
+lighting:
+  default: "soft, warm"
+  consistency_rules:
+    - "Same scene = same lighting direction and intensity"
+    - "Time of day must match across all clips in a scene"
+    - "Indoor scenes use consistent ambient light color"
+
+character_rendering:
+  proportions: "TBD"  # realistic, stylized, chibi, etc.
+  outline: "TBD"      # thick outlines, no outlines, soft edges
+  shading: "TBD"      # cell-shaded, soft gradient, realistic
+
+camera:
+  default_distance: "medium shot"
+  movement_style: "smooth, slow movements"
+  consistency_rules:
+    - "No sudden unexplained camera jumps within a scene"
+    - "Character scale must remain consistent relative to camera distance"
+
+text_overlays:
+  font: "TBD"
+  subtitle_position: "bottom center"
+  title_card_style: "TBD"
+
+# Poster typography — auto-populated after first episode poster generation.
+# Edit these values to customize font appearance for all future episodes.
+poster_typography:
+  font_style: "bold cinematic"
+  title_position: "top area with safe margins"
+  title_color: "white with dark shadow for contrast"
+  subtitle_style: "lighter weight, slightly smaller"
+  title_safe_margin_percent: 10
+
+# Model-specific prompt keywords that enforce this style
+prompt_style_prefix: >
+  TBD - will be prepended to all video generation prompts
+  to ensure consistent visual style across all content
+
+# Always appended to negative prompts (content policy)
+negative_style_prefix: >
+  nudity, sexual content, violence, gore, blood, weapons,
+  racist imagery, discriminatory content, hate symbols,
+  disturbing content, horror, inappropriate

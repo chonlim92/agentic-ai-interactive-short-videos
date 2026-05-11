@@ -1,0 +1,61 @@
+# .env
+config/.env
+*.env.local
+.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+.video_venv/
+
+# Generated assets (large files)
+data/stories/*/episodes/*/scenes/
+data/stories/*/episodes/*/audio/
+data/stories/*/episodes/*/final/
+# Legacy paths
+data/episodes/*/scenes/*.mp4
+data/episodes/*/audio/*.wav
+data/episodes/*/audio/*.mp3
+data/episodes/*/final/*.mp4
+data/episodes/*/scenes/
+data/episodes/*/audio/
+data/episodes/*/final/
+
+# App data (persisted locally, not in git)
+site/data/store.json
+site/data/store.json.tmp
+site/data/*.db
+
+# Node/Next.js
+site/node_modules/
+site/.next/
+site/out/
+site/package-lock.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Stop signals (runtime)
+.stop/
+
+# IDE
+.vscode/
+*.swp
+*.swo
+.idea/
+
+# Generated clips and compose artifacts
+data/stories/*/episodes/*/clips/
+data/stories/*/episodes/*/compose/
+
+# Coverage / test output
+.coverage
+htmlcov/
+.pytest_cache/

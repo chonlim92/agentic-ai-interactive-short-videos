@@ -1,0 +1,32 @@
+animation_style: 卡通动画风格，柔和色彩搭配，身体比例适中，表情丰富
+appearance:
+  age: '22'
+  build: 苗条
+  distinguishing_features:
+  - 戴眼镜
+  - 经常微笑和笑
+  eyes: 棕色，大而有神
+  hair: 黑色，长发披肩，有时扎成马尾
+  skin: 浅黄色
+clothing:
+  accessories:
+  - 眼镜
+  - 智能手表
+  - 耳机
+  default_outfit: 穿着白色T恤，上面印有Python的logo，黑色休闲裤，脚穿白色运动鞋，手腕上戴着一块智能手表。
+  variants: []
+color_palette:
+- '#FFFFFF'
+- '#000000'
+- '#FFD700'
+- '#00BFFF'
+name: Xiao Xi
+name_zh: 小溪
+personality_visual_cues: 温柔，经常微笑和笑，眼神中透露出聪明和机智
+prompt_keywords: 小溪，22岁，黑色长发披肩，戴眼镜，穿白色T恤和黑色休闲裤，脚穿白色运动鞋，戴智能手表，眼神灵动，表情丰富，经常微笑和笑
+reference_prompt: 生成一个22岁的女性角色，黑色长发披肩，戴眼镜，穿着白色T恤（上面印有Python的logo）和黑色休闲裤，脚穿白色运动鞋，手腕上戴着一块智能手表。她的眼神灵动，表情丰富，经常微笑和笑，显得非常温柔。
+role: protagonist
+slug: xiao_xi
+tts_voice: sage
+tts_voice_fallback: en-US-SaraNeural
+voice_asset_id: asset-20260225015133-tlfsj

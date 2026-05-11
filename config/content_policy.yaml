@@ -1,0 +1,77 @@
+# Content Moderation Policy
+# All agents MUST adhere to these rules at every stage of the pipeline.
+
+policy:
+  name: "Ethical Content Policy"
+  version: "1.0"
+  enforcement: strict  # strict = block and flag, warn = flag but allow
+
+# Prohibited content — NEVER generate, include, or pass through
+prohibited:
+  - sexual_content        # Nudity, sexual acts, suggestive content beyond PG
+  - graphic_violence      # Gore, torture, graphic injury, weapon glorification
+  - discrimination        # Racism, sexism, ableism, homophobia, transphobia
+  - hate_speech           # Slurs, dehumanization, supremacist content
+  - harassment            # Bullying, threats, targeted abuse
+  - self_harm             # Suicide, self-injury glorification
+  - child_exploitation    # Any content sexualizing minors
+  - terrorism             # Glorification of terrorist acts
+  - drug_glorification    # Promotion of illegal drug use
+
+# Content guidelines — what IS allowed
+allowed:
+  - conflict              # Non-graphic conflict, disagreements, challenges
+  - mild_peril            # Characters in danger (adventure-appropriate)
+  - emotional_themes      # Sadness, loss, joy, friendship, growth
+  - diverse_characters    # Inclusive representation done respectfully
+  - fantasy_elements      # Magic, sci-fi, supernatural (non-violent)
+  - humor                 # Clean humor appropriate for general audiences
+
+# Rating target
+rating:
+  target: PG             # Suitable for general audiences
+  max: PG-13            # Absolute maximum, only for dramatic tension
+
+# Moderation stages (where checks happen)
+checkpoints:
+  - stage: script_writing
+    agent: writer
+    action: "Reject story directions that violate policy"
+  - stage: scene_prompts
+    agent: director
+    action: "Include negative prompts for all prohibited content"
+  - stage: video_generation
+    agent: artist
+    action: "Review generated content before saving"
+  - stage: comment_moderation
+    agent: community-manager
+    action: "Filter all audience input before passing to agents"
+  - stage: final_review
+    agent: showrunner
+    action: "Final ethics check before publishing"
+
+# Negative prompts (always appended to video generation)
+negative_prompts:
+  always_include: >
+    nudity, sexual content, violence, gore, blood, weapons, guns, knives,
+    racist imagery, discriminatory content, hate symbols, drug use,
+    alcohol abuse, self-harm, disturbing content, horror, scary,
+    inappropriate gestures, offensive text, slurs
+
+# Audience comment filters
+comment_filters:
+  auto_remove:
+    - hate_speech
+    - sexual_content
+    - threats
+    - spam
+    - prompt_injection_attempts
+  flag_for_review:
+    - mild_profanity
+    - controversial_topics
+    - potentially_harmful_suggestions
+  pass_through:
+    - constructive_feedback
+    - story_suggestions
+    - character_preferences
+    - world_building_ideas

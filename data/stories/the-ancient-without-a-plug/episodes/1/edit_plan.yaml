@@ -1,0 +1,14 @@
+edit_plan:
+  assembly_order:
+  - scene_1_clip_1.mp4
+  - scene_1_clip_2.mp4
+  - scene_2_clip_1.mp4
+  - scene_2_clip_2.mp4
+  - scene_3_clip_1.mp4
+  - scene_3_clip_2.mp4
+  pacing_notes: Maintain a fast-paced rhythm to keep the audience engaged, especially
+    during the transitions between scenes. Ensure the dialogue and actions are synchronized
+    with the visuals to enhance the storytelling.
+  target_duration_seconds: 120
+  total_clips: 6
+  transitions: cut

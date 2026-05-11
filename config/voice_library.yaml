@@ -1,0 +1,394 @@
+# Seedance Digital Character Voice Library
+# Source: https://console.byteplus.com/ark/region:ark+ap-southeast-1/experience/vision?modelId=dreamina-seedance-2-0-260128&tab=GenVideo
+#
+# Usage in character YAML:
+#   voice_asset_id: <ASSET_ID>
+#   → passed to Seedance API as: asset://<ASSET_ID>
+#
+# The character-designer agent should pick the best matching voice from this library
+# based on age, gender, and personality of the character being created.
+
+voices:
+  # ==================== CHINESE FEMALE ====================
+
+  - asset_id: "asset-20260225014946-gdm92"
+    name: "电子国风女歌手"
+    gender: female
+    age_range: young
+    language: zh
+    description: "23yo singer, electronic music with ancient Chinese charm, spends time in recording studio"
+    tags: [artistic, modern, youthful, musical]
+
+  - asset_id: "asset-20260225014954-jbfpf"
+    name: "女团主唱"
+    gender: female
+    age_range: young
+    language: zh
+    description: "24yo girl group lead vocalist, energetic, practices vocal riffs daily"
+    tags: [energetic, bright, pop, youthful]
+
+  - asset_id: "asset-20260410114236-8cdfz"
+    name: "美妆博主"
+    gender: female
+    age_range: young
+    language: zh
+    description: "26yo Shanghai beauty blogger, KOL for Chinese-style makeup, independent content creator"
+    tags: [confident, trendy, articulate, professional]
+
+  - asset_id: "asset-20260225014824-xclbt"
+    name: "美妆主播"
+    gender: female
+    age_range: young
+    language: zh
+    description: "28yo beauty live streamer, tells down-to-earth jokes, loves historical costume dramas"
+    tags: [warm, humorous, relatable, casual]
+
+  - asset_id: "asset-20260225015206-mvz6t"
+    name: "古装宫女演员"
+    gender: female
+    age_range: young
+    language: zh
+    description: "21yo Chinese actress, plays palace maid roles, young and delicate voice"
+    tags: [gentle, delicate, youthful, soft]
+
+  - asset_id: "asset-20260225015133-tlfsj"
+    name: "互联网实习生"
+    gender: female
+    age_range: young
+    language: zh
+    description: "22yo content operations intern, collects vintage periodicals, studious"
+    tags: [youthful, studious, casual, curious]
+
+  - asset_id: "asset-20260225015049-zzsfp"
+    name: "排爆工程师"
+    gender: female
+    age_range: young
+    language: zh
+    description: "24yo female bomb disposal expert, precise and focused"
+    tags: [calm, focused, precise, strong]
+
+  - asset_id: "asset-20260225015032-9f59b"
+    name: "95后养蜂女孩"
+    gender: female
+    age_range: young
+    language: zh
+    description: "24yo 'Post-95s Bee Girl', vlogs beekeeping life, rural and fresh"
+    tags: [fresh, rural, cheerful, natural]
+
+  - asset_id: "asset-20260225015244-4lwgt"
+    name: "国潮街拍模特"
+    gender: female
+    age_range: young
+    language: zh
+    description: "20yo Chinese street model, guochao style, practices calligraphy"
+    tags: [cool, artistic, youthful, street]
+
+  - asset_id: "asset-20260225015051-jgd5n"
+    name: "社区面馆老板娘"
+    gender: female
+    age_range: middle-aged
+    language: zh
+    description: "38yo noodle shop owner, cooks and delivers, does aerobics during lulls"
+    tags: [warm, energetic, down-to-earth, maternal]
+
+  - asset_id: "asset-20260225014930-kh5c8"
+    name: "古籍文献教授"
+    gender: female
+    age_range: middle-aged
+    language: zh
+    description: "49yo female professor, guides students in ancient text collation, loves spy dramas"
+    tags: [scholarly, calm, authoritative, refined]
+
+  - asset_id: "asset-20260225014910-4hq8j"
+    name: "八宝茶农妇"
+    gender: female
+    age_range: elderly
+    language: zh
+    description: "62yo tea farmer, makes Eight Treasures Tea, experiments with flower/fruit ratios"
+    tags: [warm, experienced, rural, gentle]
+
+  - asset_id: "asset-20260225014832-bdcj7"
+    name: "苹果种植户(女)"
+    gender: female
+    age_range: elderly
+    language: zh
+    description: "75yo female fruit farmer, Red Fuji apples in Yantai, village cooperative backbone"
+    tags: [elderly, warm, maternal, rural, wise]
+
+  - asset_id: "asset-20260225014826-lr75n"
+    name: "苹果种植户(女)B"
+    gender: female
+    age_range: elderly
+    language: zh
+    description: "75yo female fruit farmer (alternate), same profile as above"
+    tags: [elderly, warm, maternal, rural]
+
+  - asset_id: "asset-20260225015024-f7rvx"
+    name: "养蜂人(老年)"
+    gender: female
+    age_range: elderly
+    language: zh
+    description: "68yo beekeeper, knows all nectar sources, presses flowers into specimen notebook"
+    tags: [elderly, wise, patient, rural, knowledgeable]
+
+  - asset_id: "asset-20260225015013-qqsll"
+    name: "知识产权律师"
+    gender: female
+    age_range: young
+    language: zh
+    description: "32yo IP department head at law firm, precise, uses fountain pen and movable type stamps"
+    tags: [professional, precise, intellectual, confident]
+
+  # ==================== CHINESE MALE ====================
+
+  - asset_id: "asset-20260225015209-lb6sf"
+    name: "战将演员"
+    gender: male
+    age_range: middle-aged
+    language: zh
+    description: "40yo Chinese actor, portrays generals in heavy armor, battle scenes on yellow sand sets"
+    tags: [deep, powerful, commanding, masculine]
+
+  - asset_id: "asset-20260225015101-2jdrh"
+    name: "电商HR经理"
+    gender: male
+    age_range: middle-aged
+    language: zh
+    description: "40yo HR manager of e-commerce company, goes skateboarding, approachable"
+    tags: [friendly, casual, approachable, modern]
+
+  - asset_id: "asset-20260225015115-jk46b"
+    name: "古籍修复师"
+    gender: male
+    age_range: young
+    language: zh
+    description: "26yo ancient book restorer, meticulous, flea market enthusiast"
+    tags: [gentle, meticulous, scholarly, quiet]
+
+  - asset_id: "asset-20260225014958-fqpcg"
+    name: "证券分析师"
+    gender: male
+    age_range: young
+    language: zh
+    description: "30yo senior securities analyst, makes clay ornaments during breaks"
+    tags: [professional, calm, creative, analytical]
+
+  - asset_id: "asset-20260225015143-gblwp"
+    name: "大件快递员"
+    gender: male
+    age_range: young
+    language: zh
+    description: "25yo bulky item courier, strong, practices tai chi during lunch break"
+    tags: [energetic, strong, grounded, youthful]
+
+  - asset_id: "asset-20260225014949-zbhmn"
+    name: "丑橘种植户"
+    gender: male
+    age_range: elderly
+    language: zh
+    description: "75yo veteran fruit farmer, grows ugly tangerines in Sichuan for 50 years"
+    tags: [elderly, weathered, rural, hardworking, worried]
+
+  - asset_id: "asset-20260225014833-c86qr"
+    name: "国学教授"
+    gender: male
+    age_range: middle-aged
+    language: zh
+    description: "47yo university professor, cites classics extensively, brews Keemun black tea"
+    tags: [scholarly, authoritative, calm, refined]
+
+  - asset_id: "asset-20260225014906-5n7nz"
+    name: "外科医生"
+    gender: male
+    age_range: elderly
+    language: zh
+    description: "58yo male surgeon, 30 years experience, mentors young doctors, raises orchids"
+    tags: [authoritative, calm, experienced, wise, warm]
+
+  - asset_id: "asset-20260225014823-w2csw"
+    name: "六堡茶农"
+    gender: male
+    age_range: elderly
+    language: zh
+    description: "68yo tea farmer, grows Liubao tea in Guangxi for 50 years, plays gateball"
+    tags: [elderly, jovial, rural, carefree, warm]
+
+  # ==================== ENGLISH FEMALE ====================
+
+  - asset_id: "asset-20260225015112-q9dvj"
+    name: "Dutch Tulip Grower"
+    gender: female
+    age_range: young
+    language: en
+    description: "22yo Dutch tulip grower, hums folk ballads, films skylarks with action camera"
+    tags: [gentle, natural, rural, cheerful]
+
+  - asset_id: "asset-20260225015233-r2rfv"
+    name: "South African Female Model"
+    gender: female
+    age_range: young
+    language: en
+    description: "24yo South African model, urban high-fashion, learns makeup techniques"
+    tags: [confident, professional, elegant, modern]
+
+  - asset_id: "asset-20260225015156-2w2d5"
+    name: "British Haute Couture Model"
+    gender: female
+    age_range: young
+    language: en
+    description: "26yo British model, haute couture shows, learns hand-sewing techniques"
+    tags: [elegant, refined, professional, graceful]
+
+  - asset_id: "asset-20260225015148-l6hcm"
+    name: "Dutch Studio Model"
+    gender: female
+    age_range: young
+    language: en
+    description: "22yo Dutch model, stays at photo studio, ponders vintage lighting techniques"
+    tags: [creative, thoughtful, artistic, professional]
+
+  - asset_id: "asset-20260225025518-4zcjd"
+    name: "Tanzanian Model"
+    gender: female
+    age_range: middle-aged
+    language: en
+    description: "44yo Tanzanian model, loves folk customs videos, strings colorful bead trinkets"
+    tags: [warm, mature, creative, cultural]
+
+  - asset_id: "asset-20260311022852-hjjp4"
+    name: "Canadian Office Worker"
+    gender: female
+    age_range: middle-aged
+    language: en
+    description: "35yo Canadian administrative clerk, diligent, enjoys camping, cheerful personality"
+    tags: [cheerful, diligent, warm, friendly]
+
+  - asset_id: "asset-20260225021122-8drxm"
+    name: "American Tour Guide"
+    gender: female
+    age_range: young
+    language: en
+    description: "22yo Hollywood/Silicon Valley tour guide, well-informed, loves sitcoms"
+    tags: [articulate, informative, casual, friendly]
+
+  - asset_id: "asset-20260225015300-qmfsx"
+    name: "British Period Actress"
+    gender: female
+    age_range: young
+    language: en
+    description: "25yo British actress, portrays marquis's daughter, practices curtsying"
+    tags: [elegant, refined, youthful, theatrical]
+
+  - asset_id: "asset-20260225015221-tfw9p"
+    name: "American Rural Model"
+    gender: female
+    age_range: young
+    language: en
+    description: "24yo American model, rural-style shoots at farms, friendly and outdoorsy"
+    tags: [friendly, outdoorsy, casual, warm]
+
+  - asset_id: "asset-20260225015308-87pn5"
+    name: "Spanish Fast Fashion Model"
+    gender: female
+    age_range: young
+    language: en
+    description: "24yo Spanish model, fast fashion brands, loves escape rooms"
+    tags: [energetic, fun, youthful, stylish]
+
+  - asset_id: "asset-20260225015337-wllzx"
+    name: "Korean Workplace Model"
+    gender: female
+    age_range: young
+    language: ko
+    description: "22yo South Korean model, workplace outfit samples, shares styling tips"
+    tags: [professional, modern, polished, youthful]
+
+  - asset_id: "asset-20260225015240-wmzwz"
+    name: "Korean University Researcher"
+    gender: female
+    age_range: young
+    language: ko
+    description: "32yo South Korean researcher, molecular biology, collects out-of-print books"
+    tags: [intellectual, patient, scholarly, focused]
+
+  - asset_id: "asset-20260225015242-nlzg7"
+    name: "Japanese Kimono Model"
+    gender: female
+    age_range: middle-aged
+    language: ja
+    description: "35yo Japanese kimono model, shoots at Shinto shrines, crochets yarn pendants"
+    tags: [graceful, traditional, calm, refined]
+
+  - asset_id: "asset-20260225023158-vd9fc"
+    name: "Laotian Office Clerk"
+    gender: female
+    age_range: young
+    language: en
+    description: "Administrative clerk in Vientiane, serves lemongrass tea, watches Thai dramas"
+    tags: [gentle, quiet, warm, reserved]
+
+  # ==================== ENGLISH MALE ====================
+
+  - asset_id: "asset-20260225015229-d77t9"
+    name: "British Male Model"
+    gender: male
+    age_range: young
+    language: en
+    description: "22yo British model, street-style high-fashion, keeps ornamental pigeons"
+    tags: [stylish, cool, youthful, refined]
+
+  - asset_id: "asset-20260225015256-6vmff"
+    name: "South African Wildlife Model"
+    gender: male
+    age_range: young
+    language: en
+    description: "26yo South African model, wildlife reserve shoots, collects bird feathers"
+    tags: [adventurous, rugged, natural, creative]
+
+  - asset_id: "asset-20260225015124-m44vk"
+    name: "Indonesian Diving Instructor"
+    gender: male
+    age_range: middle-aged
+    language: en
+    description: "36yo Indonesian diving instructor in Cape Town, shoots underwater ecosystems"
+    tags: [calm, instructive, patient, outdoorsy]
+
+  - asset_id: "asset-20260225015312-pnlv8"
+    name: "American Carpenter"
+    gender: male
+    age_range: young
+    language: en
+    description: "30yo American woodworking studio owner, crafts solid wood furniture"
+    tags: [warm, grounded, creative, masculine]
+
+  - asset_id: "asset-20260225022042-4vgpw"
+    name: "Hungarian Executive"
+    gender: male
+    age_range: middle-aged
+    language: en
+    description: "33yo corporate executive, decisive, loves hot springs and spicy stew"
+    tags: [authoritative, decisive, confident, deep]
+
+  - asset_id: "asset-20260225015307-6z8lx"
+    name: "Korean Hip-Hop Model"
+    gender: male
+    age_range: young
+    language: ko
+    description: "28yo South Korean street hip-hop model, freestyles rap during breaks"
+    tags: [energetic, cool, street, rhythmic]
+
+  - asset_id: "asset-20260225014837-p8pc8"
+    name: "Danish Professor"
+    gender: male
+    age_range: elderly
+    language: en
+    description: "59yo Danish professor, teaches Viking heritage, brews cinnamon tea"
+    tags: [scholarly, warm, wise, storytelling]
+
+  - asset_id: "asset-20260225015336-q2429"
+    name: "American Period Actor"
+    gender: male
+    age_range: elderly
+    language: en
+    description: "55yo American actor, plays royal governor, collects vintage trade stamps"
+    tags: [authoritative, deep, theatrical, dignified]

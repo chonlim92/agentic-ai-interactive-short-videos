@@ -1,0 +1,48 @@
+publish:
+  comments:
+    enabled: true
+    max_length: 500
+    moderation: auto
+  description: A modern programmer, Xiao Xi, finds herself in an ancient Chinese village
+    after losing her internet connection. Will she find a way back to the modern world?
+  description_zh: 现代程序员小溪在失去网络连接后，意外穿越到了古代中国的一个村庄。她能否找到回到现代世界的方法？
+  duration_seconds: 180
+  episode_number: 1
+  poll:
+    deadline_hours: 72
+    options:
+    - id: a
+      label: Explore the village and learn more about the people
+      label_zh: 探索村庄，了解更多关于村民的信息
+      teaser: Discover the secrets of the ancient village and form bonds with the
+        locals.
+    - id: b
+      label: Try to repair her devices and find a way back to the modern world
+      label_zh: 尝试修理设备，寻找回到现代世界的方法
+      teaser: Use her technical skills to bridge the gap between past and present.
+    - id: c
+      label: Seek help from the old craftsman in the village
+      label_zh: 向村里的老匠人求助
+      teaser: Learn ancient wisdom and see if it can help her solve her modern problems.
+    question: What should Xiao Xi do next?
+    question_zh: 小溪接下来应该做什么？
+  seo_keywords:
+  - 穿越
+  - 古代中国
+  - 现代程序员
+  - 小溪
+  - 汴梁
+  - 离线指南
+  - 科技
+  - 冒险
+  social_posts:
+    short_teaser: 小溪坐在河边，被古代村民围绕，心中充满疑惑与期待。她将如何适应这个未知的古代世界？投票决定她的下一步行动！
+    twitter: '现代程序员小溪在失去网络连接后，意外穿越到了古代中国！她将如何应对？投票决定她的下一步行动！#大宋Debug #穿越 #古代中国 #现代科技'
+  tags:
+  - 穿越
+  - 古代中国
+  - 现代科技
+  - 冒险
+  thumbnail_prompt: 生成一张小溪坐在河边，被古代村民围绕的画面。画面中，小溪的表情充满疑惑和期待，周围村民好奇地注视着她。背景是古色古香的村庄，月光柔和地洒在河面上，营造出一种梦幻般的氛围。
+  title: The Ancient Without a Plug
+  title_zh: 大宋Debug：汴梁离线指南

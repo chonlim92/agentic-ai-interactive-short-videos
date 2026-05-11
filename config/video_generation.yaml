@@ -1,0 +1,127 @@
+# Video Generation Configuration
+
+model:
+  name: seedance2.0
+  provider: byteplus
+  fallback: hunyuanvideo
+  # Execution mode: "cloud" (Inference API) or "local" (diffusers pipeline)
+  execution: cloud
+
+episode:
+  target_duration_seconds: 60   # Default episode duration (overridden by VIDEO_LENGTH env var)
+  scenes_per_episode: 3-4       # Scenes to fill default duration
+
+generation:
+  fps: 24
+  # Vertical 9:16 phone format
+  width: 720
+  height: 1280
+  aspect_ratio: "9:16"
+  clip_duration_seconds: 10     # Default clip duration (overridden by prompt YAML duration_seconds)
+  quality: high                 # draft, standard, high
+  seed: null                    # null = random
+  generate_audio: true          # Enable Seedance audio generation (uses character voice_url as reference_audio)
+
+# Multi-clip stitching (models generate only a few seconds at a time)
+stitching:
+  enabled: true
+  clips_per_scene: 3-5          # Multiple clips stitched per scene
+  overlap_frames: 8             # Overlapping frames for smooth transitions
+  continuity_mode: true         # Use last frame as input for next clip
+  style_lock: true              # Lock style parameters across all clips
+
+# Cross-clip and cross-episode consistency
+consistency:
+  character_reference: true     # Always include character reference images
+  scene_context_window: 3       # Include context from N previous clips
+  style_embedding: true         # Use style embeddings for visual consistency
+  background_lock: true         # Keep backgrounds consistent within a scene
+  lighting_lock: true           # Maintain lighting across clips in same scene
+  temporal_coherence: true      # Ensure motion continuity between clips
+  cross_episode:
+    enabled: true
+    character_sheets: data/characters/
+    location_sheets: data/locations/
+    style_guide: data/style_guide.yaml
+
+output:
+  base_dir: data/episodes
+  format: mp4
+  naming: "scene_{scene_number}_clip_{clip_number}"
+
+# Watermark applied to all generated videos
+watermark:
+  enabled: true
+  text: "StorySmith AI · 剧匠AI"
+  position: bottom-right       # top-left, top-right, bottom-left, bottom-right
+  opacity: 0.7
+  font_size: 18
+  margin_px: 16
+  color: "#ffffff"
+
+retry:
+  max_attempts: 3               # Capped to 1 for expensive models (Seedance) at runtime
+  backoff_seconds: 10
+
+# Cost protection — prevent duplicate/runaway API charges
+cost_protection:
+  min_clip_size_bytes: 50000    # Skip generation if clip already exists and is larger than this
+  lock_timeout_seconds: 600     # Lock file expiry (prevents concurrent generation of same clip)
+  expensive_model_max_retries: 1  # Max generation attempts for Seedance / BytePlus models
+  expensive_model_skip_auto_regen: true  # Skip auto quality-regen for expensive models
+
+# Quality Assurance — automated checks after each generation step
+quality_assurance:
+  # Per-clip checks (run by @artist after each clip generation)
+  clip_validation:
+    min_duration_seconds: 2.5       # Reject clips shorter than this
+    max_duration_seconds: 12.0      # Reject clips longer than this (allows 10s Seedance clips)
+    min_resolution: 480p            # Minimum acceptable resolution
+    min_fps: 20                     # Minimum acceptable framerate
+    max_black_frame_ratio: 0.15     # Max ratio of fully black frames
+    max_static_frame_ratio: 0.30    # Max ratio of identical consecutive frames
+    min_file_size_kb: 100           # Reject suspiciously small files
+    content_policy_check: true      # Run content policy filter on frames
+    # Object consistency: detect objects morphing into different objects mid-clip
+    object_consistency_check: true
+    object_consistency_max_shift: 0.6   # Max histogram shift before flagging
+    object_consistency_min_violations: 2 # Min violation count to fail
+    # Floating objects: detect objects defying gravity
+    floating_object_check: true
+    floating_object_max_ratio: 0.5  # Max ratio of frames with floating objects
+    # Audio naturalness: detect gibberish/robotic speech
+    audio_naturalness_check: true
+    audio_repetition_threshold: 0.85 # Window correlation above this = gibberish
+
+  # Consistency checks (run by @artist across clips within a scene)
+  consistency_validation:
+    color_drift_threshold: 0.20     # Max color histogram drift between clips
+    brightness_drift_threshold: 0.15 # Max average brightness change
+    character_presence_check: true   # Verify expected characters appear
+    scene_continuity_check: true     # Compare last frame of clip N to first frame of N+1
+    continuity_similarity_min: 0.70  # Min SSIM between last/first frames of adjacent clips
+
+  # Scene-level checks (run by @editor before assembly)
+  scene_validation:
+    min_clips_per_scene: 2          # Minimum clips needed per scene
+    target_duration_tolerance: 0.25 # 25% tolerance from target scene duration
+    all_clips_pass_quality: true    # All clips must pass clip_validation
+    audio_sync_check: true          # Verify audio timing matches video
+
+  # Episode-level checks (run by @showrunner before publishing)
+  episode_validation:
+    min_total_duration_seconds: 150  # Minimum 2.5 minutes
+    max_total_duration_seconds: 210  # Maximum 3.5 minutes
+    min_scenes: 6                    # Minimum scenes in final episode
+    all_scenes_pass_quality: true    # All scenes must pass scene_validation
+    cross_scene_consistency: true    # Characters consistent across scenes
+    content_policy_final: true       # Final content policy sweep on exported video
+    audio_present: true              # Episode must have audio track
+
+  # Actions on failure
+  on_failure:
+    clip: regenerate         # regenerate | flag | skip
+    consistency: regenerate  # regenerate the offending clip
+    scene: block             # block assembly until resolved
+    episode: block           # block publishing until resolved
+    max_regeneration_attempts: 3

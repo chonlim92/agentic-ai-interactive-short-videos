@@ -1,0 +1,29 @@
+animation_style: 卡通动画风格，柔和色彩搭配，身体比例适中，表情亲切
+appearance:
+  age: '60'
+  build: 瘦削
+  distinguishing_features:
+  - 脸上有细纹
+  - 常带着微笑
+  eyes: 灰色，温和
+  hair: 白色，短发略显凌乱
+  skin: 苍白
+clothing:
+  accessories:
+  - 老式圆形眼镜
+  default_outfit: 穿着传统长袍，质地陈旧但干净整齐，佩戴一副老式圆形眼镜。
+  variants: []
+color_palette:
+- '#708090'
+- '#4682B4'
+- '#D3D3D3'
+name: Old Craftsman
+name_zh: 老匠人
+personality_visual_cues: 表情亲切，温和的眼神透露出智慧和善良
+prompt_keywords: 老匠人，60岁，白色短发略显凌乱，穿传统长袍，脸上有细纹，常带着微笑
+reference_prompt: 生成一个60岁的男性角色，白色短发略显凌乱，穿着传统长袍，佩戴老式圆形眼镜。脸上有细纹，常带着微笑，表情亲切，温和的眼神中透露出智慧和善良。
+role: supporting
+slug: old_craftsman
+tts_voice: verse
+tts_voice_fallback: en-US-DavisNeural
+voice_asset_id: asset-20260225015209-lb6sf

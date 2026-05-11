@@ -1,0 +1,340 @@
+consistency_notes: 保持小溪的造型和表情一致，确保每个场景的背景和环境符合时间和地点的变化。
+scenes:
+- character_refs:
+  - xiao_xi
+  clips:
+  - action: 快速敲击键盘，代码滚动，屏幕闪烁，皱眉推眼镜，深呼吸，转头看向窗外
+    camera: 近景镜头，聚焦小溪的面部表情和手部动作
+    clip_number: 1
+    dialogue:
+    - character: 小溪
+      emotion: 吐槽式
+      line: 再跑一次单元测试，别跟我出幺蛾子。
+    duration_seconds: 10
+    environment: 小溪的卧室，深夜，灯光昏暗，窗外夜景，窗帘随风轻轻飘动
+    narration: ''
+    negative_prompt: 性内容, 图形暴力, 歧视, 恨意言论, 骚扰, 自我伤害, 儿童剥削, 恐怖主义, 药物美化, 模糊, 低质量
+    prompt: 小溪坐在桌前，面前摆着笔记本电脑、手机、咖啡杯和耳机。她快速敲击键盘，代码在屏幕上飞速滚动。突然屏幕闪烁弹出红色错误提示，她的手指停在半空中。她皱眉推了一下黑框眼镜，深吸一口气向后靠在椅背上。桌上咖啡杯里的热气缓缓升腾，台灯投下暖黄色光圈。她缓缓转头看向窗外，窗帘被夜风轻轻吹动，月光洒在地板上。
+    sound_effects:
+    - 键盘敲击声
+    - 咖啡杯中的热气声
+    - 夜风吹动窗帘的声音
+    subject: 小溪坐在桌前，面前摆着笔记本电脑、手机、咖啡杯和耳机。她快速敲击键盘，代码在屏幕上飞速滚动。突然屏幕闪烁弹出红色错误提示，她的手指停在半空中。她皱眉推了一下黑框眼镜，深吸一口气向后靠在椅背上。桌上咖啡杯里的热气缓缓升腾，台灯投下暖黄色光圈。她缓缓转头看向窗外，窗帘被夜风轻轻吹动，月光洒在地板上。
+    transition_in: 小溪坐在桌前，面前摆着笔记本电脑、手机、咖啡杯和耳机
+    transition_out: 小溪转头看向窗外，窗帘被夜风轻轻吹动，月光洒在地板上
+  - action: 转头看向窗外，放下咖啡杯，站起身，掀开窗帘，蓝白光越来越亮，后退一步，回头看屏幕
+    camera: 快速切换到窗外的蓝白光
+    clip_number: 2
+    dialogue: []
+    duration_seconds: 10
+    environment: 小溪的卧室，深夜，灯光昏暗，窗外夜景，窗帘随风轻轻飘动
+    narration: ''
+    negative_prompt: 性内容, 图形暴力, 歧视, 恨意言论, 骚扰, 自我伤害, 儿童剥削, 恐怖主义, 药物美化, 模糊, 低质量
+    prompt: 小溪转头看向窗外，眼神中闪过一丝惊讶。她放下手中的咖啡杯，站起身走向窗边，用手掀开窗帘一角。窗外的蓝白光越来越亮，她不自觉地后退一步，回头看了一眼笔记本电脑的屏幕。
+    sound_effects:
+    - 窗帘掀开的声音
+    - 蓝白光的闪烁声
+    subject: 小溪转头看向窗外，眼神中闪过一丝惊讶。她放下手中的咖啡杯，站起身走向窗边，用手掀开窗帘一角。窗外的蓝白光越来越亮，她不自觉地后退一步，回头看了一眼笔记本电脑的屏幕。
+    transition_in: 小溪转头看向窗外，窗帘被夜风轻轻吹动，月光洒在地板上
+    transition_out: 小溪后退一步，回头看笔记本电脑的屏幕，窗外蓝白光越来越亮
+  location_ref: 小溪的卧室
+  mood: 紧张、荒诞
+  quality_criteria:
+    forbidden_elements:
+    - 现代物体
+    - 错误的颜色调色板
+    lighting_consistency: 暖黄色灯光，夜晚环境
+    motion_expectation: 动态
+    required_elements:
+    - 小溪坐在桌前
+    - 笔记本电脑
+    - 手机
+    - 咖啡杯
+    - 窗帘
+    - 夜风
+    - 蓝白光
+  scene_number: 1
+  style: 卡通动画风格，柔和色彩搭配
+  target_duration: 20
+  total_clips: 2
+- character_refs:
+  - xiao_xi
+  clips:
+  - action: 走出门外，看到远处光影，走向祠堂，手机屏幕反射光线，眼前一黑
+    camera: 特写镜头，聚焦手机屏幕的反射光
+    clip_number: 1
+    dialogue:
+    - character: 小溪
+      emotion: 疑惑
+      line: 这光是怎么回事？
+    duration_seconds: 10
+    environment: 山间夜色，远处祠堂方向有一阵光影，小溪手中拿着手机
+    narration: ''
+    negative_prompt: 性内容, 图形暴力, 歧视, 恨意言论, 骚扰, 自我伤害, 儿童剥削, 恐怖主义, 药物美化, 模糊, 低质量
+    prompt: 小溪走出门外，看到远处的祠堂方向有一阵光影。她好奇地走向祠堂，手机屏幕反射着光线。画面转场到山间夜色，小溪眼前一黑。
+    sound_effects:
+    - 脚步声
+    - 远处光影的闪烁声
+    subject: 小溪走出门外，看到远处的祠堂方向有一阵光影。她好奇地走向祠堂，手机屏幕反射着光线。画面转场到山间夜色，小溪眼前一黑。
+    transition_in: 小溪后退一步，回头看笔记本电脑的屏幕，窗外蓝白光越来越亮
+    transition_out: 小溪走出门外，看到远处的祠堂方向有一阵光影
+  - action: 走出门外，看到远处光影，走向祠堂，手机屏幕反射光线，眼前一黑
+    camera: 快速切换到山间夜色
+    clip_number: 2
+    dialogue: []
+    duration_seconds: 10
+    environment: 山间夜色，远处祠堂方向有一阵光影，小溪手中拿着手机
+    narration: ''
+    negative_prompt: 性内容, 图形暴力, 歧视, 恨意言论, 骚扰, 自我伤害, 儿童剥削, 恐怖主义, 药物美化, 模糊, 低质量
+    prompt: 小溪走出门外，看到远处的祠堂方向有一阵光影。她好奇地走向祠堂，手机屏幕反射着光线。画面转场到山间夜色，小溪眼前一黑。
+    sound_effects:
+    - 脚步声
+    - 远处光影的闪烁声
+    subject: 小溪走出门外，看到远处的祠堂方向有一阵光影。她好奇地走向祠堂，手机屏幕反射着光线。画面转场到山间夜色，小溪眼前一黑。
+    transition_in: 小溪走出门外，看到远处的祠堂方向有一阵光影
+    transition_out: 小溪走向祠堂，手机屏幕反射光线，眼前一黑
+  location_ref: 山间夜色
+  mood: 神秘、紧张
+  quality_criteria:
+    forbidden_elements:
+    - 现代物体
+    - 错误的颜色调色板
+    lighting_consistency: 夜晚环境，蓝白光
+    motion_expectation: 动态
+    required_elements:
+    - 小溪走出门外
+    - 远处祠堂方向的光影
+    - 手机屏幕反射光线
+  scene_number: 2
+  style: 卡通动画风格，柔和色彩搭配
+  target_duration: 20
+  total_clips: 2
+- character_refs:
+  - xiao_xi
+  - villager_a
+  - other_villagers
+  clips:
+  - action: 迷糊醒来，发现自己在山脚下，看到村民挑水赶集，惊呼，村民们围上来，对现代物品好奇
+    camera: 近景镜头，展示小溪的惊讶表情和村民的好奇表情
+    clip_number: 1
+    dialogue:
+    - character: 小溪
+      emotion: 惊讶
+      line: 我这是哪儿？
+    - character: 村民甲
+      emotion: 好奇
+      line: 这位姑娘，你是从哪里来的？
+    duration_seconds: 10
+    environment: 清晨，山脚下，穿着宋代衣裳的村民在挑水、赶集，阳光透过树梢洒在地上
+    narration: ''
+    negative_prompt: 性内容, 图形暴力, 歧视, 恨意言论, 骚扰, 自我伤害, 儿童剥削, 恐怖主义, 药物美化, 模糊, 低质量
+    prompt: 清晨，小溪迷糊地醒来，发现自己在一个山脚下。周围是穿着宋代衣裳的村民在挑水、赶集。小溪惊呼，村民们围上来，对她手中的现代物品感到好奇。
+    sound_effects:
+    - 村民的交谈声
+    - 挑水声
+    - 集市的嘈杂声
+    subject: 清晨，小溪迷糊地醒来，发现自己在一个山脚下。周围是穿着宋代衣裳的村民在挑水、赶集。小溪惊呼，村民们围上来，对她手中的现代物品感到好奇。
+    transition_in: 小溪走向祠堂，手机屏幕反射光线，眼前一黑
+    transition_out: 小溪迷糊醒来，发现自己在山脚下，看到村民挑水赶集
+  - action: 村民们围上来，对现代物品好奇，小溪解释自己来自另一个地方，村民们更加好奇
+    camera: 快速切换到周围的环境
+    clip_number: 2
+    dialogue: []
+    duration_seconds: 10
+    environment: 清晨，山脚下，穿着宋代衣裳的村民在挑水、赶集，阳光透过树梢洒在地上
+    narration: ''
+    negative_prompt: 性内容, 图形暴力, 歧视, 恨意言论, 骚扰, 自我伤害, 儿童剥削, 恐怖主义, 药物美化, 模糊, 低质量
+    prompt: 村民们围上来，对小溪手中的现代物品感到好奇。小溪解释自己来自另一个地方，村民们更加好奇。
+    sound_effects:
+    - 村民的交谈声
+    - 挑水声
+    - 集市的嘈杂声
+    subject: 村民们围上来，对小溪手中的现代物品感到好奇。小溪解释自己来自另一个地方，村民们更加好奇。
+    transition_in: 小溪迷糊醒来，发现自己在山脚下，看到村民挑水赶集
+    transition_out: 村民们围上来，对现代物品好奇，小溪解释自己来自另一个地方
+  location_ref: 宋朝小县城山脚
+  mood: 错位幽默
+  quality_criteria:
+    forbidden_elements:
+    - 现代物体
+    - 错误的颜色调色板
+    lighting_consistency: 清晨阳光
+    motion_expectation: 动态
+    required_elements:
+    - 小溪迷糊醒来
+    - 山脚下
+    - 村民挑水赶集
+    - 现代物品
+  scene_number: 3
+  style: 卡通动画风格，柔和色彩搭配
+  target_duration: 20
+  total_clips: 2
+- character_refs:
+  - xiao_xi
+  - villager_a
+  clips:
+  - action: 掏出手机，发现电量低，导航无法联网，笔记本提示低电，尝试用手势联网，村民们更加惊讶
+    camera: 近景镜头，展示小溪的手机和笔记本
+    clip_number: 1
+    dialogue:
+    - character: 小溪
+      emotion: 自嘲
+      line: 这就是程序员的末日：没有电。
+    duration_seconds: 10
+    environment: 清晨，山脚下，穿着宋代衣裳的村民在挑水、赶集，阳光透过树梢洒在地上
+    narration: ''
+    negative_prompt: 性内容, 图形暴力, 歧视, 恨意言论, 骚扰, 自我伤害, 儿童剥削, 恐怖主义, 药物美化, 模糊, 低质量
+    prompt: 小溪掏出手机，发现电量只剩个位数，导航无法联网，笔记本也提示低电。她尝试用手势联网，村民们更加惊讶。
+    sound_effects:
+    - 手机提示音
+    - 笔记本提示音
+    - 村民的惊叹声
+    subject: 小溪掏出手机，发现电量只剩个位数，导航无法联网，笔记本也提示低电。她尝试用手势联网，村民们更加惊讶。
+    transition_in: 村民们围上来，对现代物品好奇，小溪解释自己来自另一个地方
+    transition_out: 小溪掏出手机，发现电量低，导航无法联网，笔记本提示低电
+  - action: 尝试用手势联网，村民们更加惊讶，意识到没有电，设备无法使用
+    camera: 快速切换到村民的惊讶表情
+    clip_number: 2
+    dialogue: []
+    duration_seconds: 10
+    environment: 清晨，山脚下，穿着宋代衣裳的村民在挑水、赶集，阳光透过树梢洒在地上
+    narration: ''
+    negative_prompt: 性内容, 图形暴力, 歧视, 恨意言论, 骚扰, 自我伤害, 儿童剥削, 恐怖主义, 药物美化, 模糊, 低质量
+    prompt: 小溪尝试用手势联网，村民们更加惊讶。她意识到没有电，设备无法使用。
+    sound_effects:
+    - 手势联网的声音
+    - 村民的惊叹声
+    subject: 小溪尝试用手势联网，村民们更加惊讶。她意识到没有电，设备无法使用。
+    transition_in: 小溪掏出手机，发现电量低，导航无法联网，笔记本提示低电
+    transition_out: 小溪尝试用手势联网，村民们更加惊讶，意识到没有电，设备无法使用
+  location_ref: 山脚
+  mood: 焦虑、喜感
+  quality_criteria:
+    forbidden_elements:
+    - 现代物体
+    - 错误的颜色调色板
+    lighting_consistency: 清晨阳光
+    motion_expectation: 动态
+    required_elements:
+    - 小溪掏出手机
+    - 电量低
+    - 导航无法联网
+    - 笔记本提示低电
+    - 手势联网
+  scene_number: 4
+  style: 卡通动画风格，柔和色彩搭配
+  target_duration: 20
+  total_clips: 2
+- character_refs:
+  - xiao_xi
+  - old_craftsman
+  - villager_a
+  clips:
+  - action: 老匠人注意到铜币，村民们拿出铜钱和铁器讨论，老匠人指指铜钱和铁锤，小溪灵光一闪
+    camera: 近景镜头，展示老匠人的手指和小溪的思考表情
+    clip_number: 1
+    dialogue:
+    - character: 老匠人
+      emotion: 好奇
+      line: 这铜钱和铁锤，是不是有什么特别的用途？
+    - character: 小溪
+      emotion: 思考
+      line: 也许有用……
+    duration_seconds: 10
+    environment: 清晨，山脚下，穿着宋代衣裳的村民在挑水、赶集，阳光透过树梢洒在地上
+    narration: ''
+    negative_prompt: 性内容, 图形暴力, 歧视, 恨意言论, 骚扰, 自我伤害, 儿童剥削, 恐怖主义, 药物美化, 模糊, 低质量
+    prompt: 一个好奇的老匠人注意到小溪口袋里的一枚铜币，村民们拿出铜钱和铁器讨论。老匠人指指铜钱和铁锤，小溪灵光一闪。
+    sound_effects:
+    - 村民的讨论声
+    - 铜钱和铁锤的碰撞声
+    subject: 一个好奇的老匠人注意到小溪口袋里的一枚铜币，村民们拿出铜钱和铁器讨论。老匠人指指铜钱和铁锤，小溪灵光一闪。
+    transition_in: 小溪尝试用手势联网，村民们更加惊讶，意识到没有电，设备无法使用
+    transition_out: 老匠人注意到铜币，村民们拿出铜钱和铁器讨论
+  - action: 村民们围上来，对小溪的创意表示赞同，老匠人提议用铜钱和铁锤制作电化学电池，为手机充电
+    camera: 快速切换到村民的讨论
+    clip_number: 2
+    dialogue: []
+    duration_seconds: 10
+    environment: 清晨，山脚下，穿着宋代衣裳的村民在挑水、赶集，阳光透过树梢洒在地上
+    narration: ''
+    negative_prompt: 性内容, 图形暴力, 歧视, 恨意言论, 骚扰, 自我伤害, 儿童剥削, 恐怖主义, 药物美化, 模糊, 低质量
+    prompt: 村民们围上来，对小溪的创意表示赞同。老匠人提议用铜钱和铁锤制作电化学电池，为手机充电。
+    sound_effects:
+    - 村民的讨论声
+    - 铜钱和铁锤的碰撞声
+    subject: 村民们围上来，对小溪的创意表示赞同。老匠人提议用铜钱和铁锤制作电化学电池，为手机充电。
+    transition_in: 老匠人注意到铜币，村民们拿出铜钱和铁器讨论
+    transition_out: 村民们围上来，对小溪的创意表示赞同，老匠人提议用铜钱和铁锤制作电化学电池
+  location_ref: 山脚
+  mood: 启发、希望
+  quality_criteria:
+    forbidden_elements:
+    - 现代物体
+    - 错误的颜色调色板
+    lighting_consistency: 清晨阳光
+    motion_expectation: 动态
+    required_elements:
+    - 老匠人注意到铜币
+    - 村民讨论铜钱和铁器
+    - 老匠人指指铜钱和铁锤
+    - 小溪灵光一闪
+  scene_number: 5
+  style: 卡通动画风格，柔和色彩搭配
+  target_duration: 20
+  total_clips: 2
+- character_refs:
+  - xiao_xi
+  - villager_a
+  - old_craftsman
+  clips:
+  - action: 看着手机发出微弱的光亮，嘴角露出半笑，暗自下定决心
+    camera: 特写镜头，聚焦小溪的手机和她的坚定表情
+    clip_number: 1
+    dialogue:
+    - character: 小溪
+      emotion: 坚定
+      line: 先想办法别死机。
+    duration_seconds: 10
+    environment: 清晨，山脚下，村口的老磨盘、水车、铁匠铺轮廓在远处，阳光透过树梢洒在地上
+    narration: ''
+    negative_prompt: 性内容, 图形暴力, 歧视, 恨意言论, 骚扰, 自我伤害, 儿童剥削, 恐怖主义, 药物美化, 模糊, 低质量
+    prompt: 小溪看着手中的手机发出微弱的光亮，嘴角露出半笑，暗自下定决心。村口的老磨盘、水车、铁匠铺轮廓在远处。
+    sound_effects:
+    - 手机发出微弱的光亮声
+    - 远处水车的转动声
+    subject: 小溪看着手中的手机发出微弱的光亮，嘴角露出半笑，暗自下定决心。村口的老磨盘、水车、铁匠铺轮廓在远处。
+    transition_in: 村民们围上来，对小溪的创意表示赞同，老匠人提议用铜钱和铁锤制作电化学电池
+    transition_out: 小溪看着手机发出微弱的光亮，嘴角露出半笑，暗自下定决心
+  - action: 暗自下定决心，准备开始制作电化学电池
+    camera: 快速切换到村口的轮廓
+    clip_number: 2
+    dialogue: []
+    duration_seconds: 10
+    environment: 清晨，山脚下，村口的老磨盘、水车、铁匠铺轮廓在远处，阳光透过树梢洒在地上
+    narration: ''
+    negative_prompt: 性内容, 图形暴力, 歧视, 恨意言论, 骚扰, 自我伤害, 儿童剥削, 恐怖主义, 药物美化, 模糊, 低质量
+    prompt: 小溪暗自下定决心，准备开始制作电化学电池。村口的老磨盘、水车、铁匠铺轮廓在远处，阳光透过树梢洒在地上。
+    sound_effects:
+    - 远处水车的转动声
+    - 村民的交谈声
+    subject: 小溪暗自下定决心，准备开始制作电化学电池。村口的老磨盘、水车、铁匠铺轮廓在远处，阳光透过树梢洒在地上。
+    transition_in: 小溪看着手机发出微弱的光亮，嘴角露出半笑，暗自下定决心
+    transition_out: 小溪暗自下定决心，准备开始制作电化学电池
+  location_ref: 山脚
+  mood: 悬念、决心
+  quality_criteria:
+    forbidden_elements:
+    - 现代物体
+    - 错误的颜色调色板
+    lighting_consistency: 清晨阳光
+    motion_expectation: 动态
+    required_elements:
+    - 小溪看着手机发出微弱的光亮
+    - 嘴角露出半笑
+    - 暗自下定决心
+    - 村口的老磨盘、水车、铁匠铺轮廓
+  scene_number: 6
+  style: 卡通动画风格，柔和色彩搭配
+  target_duration: 20
+  total_clips: 2

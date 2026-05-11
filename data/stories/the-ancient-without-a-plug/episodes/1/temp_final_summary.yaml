@@ -1,0 +1,46 @@
+composed_clips:
+- clip_name: episode_1_opening
+  file: episode_1_opening.mp4
+- clip_name: scene_1_clip_1
+  file: scene_1_clip_1.mp4
+  scene_number: 1
+- clip_name: scene_1_clip_2
+  file: scene_1_clip_2.mp4
+  scene_number: 1
+- clip_name: scene_2_clip_1
+  file: scene_2_clip_1.mp4
+  scene_number: 2
+- clip_name: scene_2_clip_2
+  file: scene_2_clip_2.mp4
+  scene_number: 2
+- clip_name: scene_3_clip_1
+  file: scene_3_clip_1.mp4
+  scene_number: 3
+- clip_name: scene_3_clip_2
+  file: scene_3_clip_2.mp4
+  scene_number: 3
+consistency_notes: 保持小溪的造型和表情一致，确保每个场景的背景和环境符合时间和地点的变化。
+scene_summaries:
+- character_refs:
+  - xiao_xi
+  location_ref: 小溪的卧室
+  mood: 紧张、荒诞
+  scene_number: 1
+  style: 卡通动画风格，柔和色彩搭配
+- character_refs:
+  - xiao_xi
+  location_ref: 山间夜色
+  mood: 神秘、紧张
+  scene_number: 2
+  style: 卡通动画风格，柔和色彩搭配
+- character_refs:
+  - xiao_xi
+  - villager_a
+  - other_villagers
+  location_ref: 宋朝小县城山脚
+  mood: 错位幽默
+  scene_number: 3
+  style: 卡通动画风格，柔和色彩搭配
+status: temp
+total_clips_composed: 7
+total_scenes_covered: 3
