@@ -174,13 +174,20 @@ flowchart TD
 
 ## Video Generation Models
 
-| Model | Provider | Clip Duration | Default |
-|-------|----------|--------------|---------|
-| **Seedance 2.0** | BytePlus Ark | 5–10s | ✓ |
-| CogVideoX-5B | HuggingFace | 3–6s | |
-| Wan2.1-T2V-14B | HuggingFace | 3–6s | |
-| HunyuanVideo | HuggingFace | 3–6s | |
-| AnimateDiff-Lightning | HuggingFace | 3–6s | |
+| Model | Provider | Clip Duration | Cloud | Local GPU | Default |
+|-------|----------|--------------|:-----:|:---------:|:-------:|
+| **Seedance 2.0** | BytePlus Ark | 5–10s | ✅ | ❌ | ✓ |
+| CogVideoX-5B | HuggingFace | 3–6s | ✅ | ✅ | |
+| Wan2.1-T2V-14B | HuggingFace | 3–6s | ✅ | ✅ | |
+| HunyuanVideo | HuggingFace | 3–6s | ✅ | ✅ | |
+| AnimateDiff-Lightning | Local | 3–6s | ❌ | ✅ | |
+| Text-to-Video 1.7B | HuggingFace | 2–4s | ✅ | ✅ | |
+
+**Execution modes:**
+- **Cloud** — Uses HuggingFace Inference API or BytePlus Ark API (requires API key)
+- **Local GPU** — Runs diffusers pipelines directly on your GPU (no API key needed, requires CUDA)
+
+Toggle between cloud and local via the admin panel radio button or `--local` CLI flag.
 
 **Video specs:** 720×1280 (9:16 vertical), 24fps, H264, 8Mbps
 
@@ -203,7 +210,8 @@ Failed clips get AI-generated improvement suggestions and can be regenerated wit
 
 - Python 3.11+ with pip
 - Node.js 18+ with npm
-- API keys: HuggingFace or BytePlus (video), Anthropic or OpenAI (LLM)
+- API keys: HuggingFace or BytePlus (video, for cloud mode), Anthropic or OpenAI (LLM)
+- NVIDIA GPU with CUDA (optional, for local video generation — no API key needed)
 - VS Code with GitHub Copilot (optional, for chat agents)
 
 ### Installation
@@ -243,6 +251,7 @@ See the [Admin Panel Guide](docs/admin-panel.md) for full details with screensho
 ```bash
 python agents/generate_episode.py --story my-story --episode 1
 python agents/generate_video.py --scene path/to/prompt.yaml --model seedance2.0
+python agents/generate_video.py --scene path/to/prompt.yaml --model cogvideox --local  # Local GPU
 python agents/validate_quality.py --story my-story --episode 1
 python agents/generate_audio.py --story my-story --episode 1
 python agents/compose_episode.py --story my-story --episode 1
@@ -267,7 +276,7 @@ See the [Agents Reference](docs/agents-reference.md) for all 9 agents.
 
 | Component | Technology |
 |-----------|-----------|
-| Video Generation | HuggingFace Inference API, BytePlus Ark API (Seedance 2.0) |
+| Video Generation | HuggingFace Inference API, BytePlus Ark API, Local GPU (diffusers) |
 | Audio Generation | MusicGen (facebook/musicgen-medium), Bark TTS (suno/bark) |
 | LLM | Anthropic Claude, OpenAI GPT-4 |
 | Website | Next.js 14, React 18, Tailwind CSS, Framer Motion, Recharts |

@@ -642,10 +642,103 @@ def generate_video_local(
             height=height,
             width=width,
         )
+    elif "CogVideoX" in model_id or "cogvideox" in model.lower():
+        # --- CogVideoX pipeline (THUDM/CogVideoX-5b) ---
+        from diffusers import CogVideoXPipeline
+
+        log.info(f"  CogVideoX local pipeline: {model_id}")
+        pipe = CogVideoXPipeline.from_pretrained(model_id, torch_dtype=dtype)
+        pipe = pipe.to(device)
+        pipe.enable_model_cpu_offload()
+
+        num_frames = min(fps * clip_duration, 49)  # CogVideoX max 49 frames
+
+        log.info(f"Generating video locally (CogVideoX): quality={quality}, seed={seed}, {width}x{height}")
+        result = pipe(
+            prompt=text_prompt,
+            negative_prompt=negative_prompt,
+            num_inference_steps=params["num_inference_steps"],
+            guidance_scale=params["guidance_scale"],
+            generator=generator,
+            num_frames=num_frames,
+            height=height,
+            width=width,
+        )
+
+    elif "HunyuanVideo" in model_id or "hunyuanvideo" in model.lower():
+        # --- HunyuanVideo pipeline (tencent/HunyuanVideo) ---
+        from diffusers import HunyuanVideoPipeline
+
+        log.info(f"  HunyuanVideo local pipeline: {model_id}")
+        pipe = HunyuanVideoPipeline.from_pretrained(model_id, torch_dtype=dtype)
+        pipe = pipe.to(device)
+        pipe.enable_model_cpu_offload()
+
+        num_frames = fps * clip_duration
+
+        log.info(f"Generating video locally (HunyuanVideo): quality={quality}, seed={seed}, {width}x{height}")
+        result = pipe(
+            prompt=text_prompt,
+            negative_prompt=negative_prompt,
+            num_inference_steps=params["num_inference_steps"],
+            guidance_scale=params["guidance_scale"],
+            generator=generator,
+            num_frames=num_frames,
+            height=height,
+            width=width,
+        )
+
+    elif "Wan2.1" in model_id or "wan2.1" in model.lower():
+        # --- Wan 2.1 T2V pipeline (Wan-AI/Wan2.1-T2V-14B) ---
+        from diffusers import WanPipeline
+
+        log.info(f"  Wan 2.1 local pipeline: {model_id}")
+        pipe = WanPipeline.from_pretrained(model_id, torch_dtype=dtype)
+        pipe = pipe.to(device)
+        pipe.enable_model_cpu_offload()
+
+        num_frames = fps * clip_duration
+
+        log.info(f"Generating video locally (Wan 2.1): quality={quality}, seed={seed}, {width}x{height}")
+        result = pipe(
+            prompt=text_prompt,
+            negative_prompt=negative_prompt,
+            num_inference_steps=params["num_inference_steps"],
+            guidance_scale=params["guidance_scale"],
+            generator=generator,
+            num_frames=num_frames,
+            height=height,
+            width=width,
+        )
+
+    elif "text-to-video" in model.lower() or "ali-vilab" in model_id.lower():
+        # --- ModelScope text-to-video (ali-vilab/text-to-video-ms-1.7b) ---
+        from diffusers import TextToVideoSDPipeline
+
+        log.info(f"  TextToVideoSD local pipeline: {model_id}")
+        pipe = TextToVideoSDPipeline.from_pretrained(model_id, torch_dtype=dtype)
+        pipe = pipe.to(device)
+        pipe.enable_model_cpu_offload()
+
+        num_frames = min(fps * clip_duration, 24)  # ModelScope works best with shorter clips
+
+        log.info(f"Generating video locally (TextToVideoSD): quality={quality}, seed={seed}, {width}x{height}")
+        result = pipe(
+            prompt=text_prompt,
+            negative_prompt=negative_prompt,
+            num_inference_steps=params["num_inference_steps"],
+            guidance_scale=params["guidance_scale"],
+            generator=generator,
+            num_frames=num_frames,
+            height=height,
+            width=width,
+        )
+
     else:
-        # --- Generic diffusers pipeline ---
+        # --- Generic diffusers pipeline fallback ---
         from diffusers import DiffusionPipeline
 
+        log.info(f"  Generic diffusers pipeline: {model_id}")
         pipe = DiffusionPipeline.from_pretrained(model_id, torch_dtype=dtype)
         pipe = pipe.to(device)
 

@@ -46,24 +46,42 @@ const VIDEO_MODELS = [
     label: "HunyuanVideo (Hugging Face)",
     provider: "huggingface",
     free: false,
+    localSupported: true,
   },
   {
     id: "huggingface/THUDM/CogVideoX-5b",
     label: "CogVideoX 5B (Hugging Face)",
     provider: "huggingface",
     free: false,
+    localSupported: true,
+  },
+  {
+    id: "huggingface/Wan-AI/Wan2.1-T2V-14B",
+    label: "Wan 2.1 T2V 14B (Hugging Face)",
+    provider: "huggingface",
+    free: false,
+    localSupported: true,
   },
   {
     id: "huggingface/ByteDance/AnimateDiff-Lightning",
     label: "AnimateDiff Lightning (Local GPU)",
     provider: "huggingface",
+    free: true,
+    localSupported: true,
+  },
+  {
+    id: "huggingface/ali-vilab/text-to-video-ms-1.7b",
+    label: "Text-to-Video 1.7B (ModelScope)",
+    provider: "huggingface",
     free: false,
+    localSupported: true,
   },
   {
     id: "byteplus/seedance2.0",
     label: "Seedance 2.0 (BytePlus)",
     provider: "byteplus",
     free: false,
+    localSupported: false,
   },
 ];
 
@@ -106,9 +124,15 @@ export async function GET() {
       available: m.free || checkKeyAvailable(m.provider),
     }));
 
+  const enrichVideo = (models: typeof VIDEO_MODELS) =>
+    models.map((m) => ({
+      ...m,
+      available: m.free || checkKeyAvailable(m.provider),
+    }));
+
   return NextResponse.json({
     llm: enrich(LLM_MODELS),
-    video: enrich(VIDEO_MODELS),
+    video: enrichVideo(VIDEO_MODELS),
     audio: enrich(AUDIO_MODELS),
   });
 }

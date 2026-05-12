@@ -14,7 +14,7 @@ interface ArtifactFile { name: string; size: number; type: string; }
 interface StepArtifacts { available: boolean; files: ArtifactFile[]; }
 interface GenerationRun { id: number; episode_id: number; story_id: number; mode: "full" | "single"; status: "running" | "completed" | "failed"; steps: { step_id: string; label: string; status: string; started_at: string | null; ended_at: string | null; duration_ms: number | null; output: string }[]; started_at: string; ended_at: string | null; }
 interface StepRunInfo { run_id: number; status: "pending" | "running" | "done" | "failed"; started_at: string | null; ended_at: string | null; duration_ms: number | null; output: string; output_dir: string | null; selected: boolean; }
-interface ModelInfo { id: string; label: string; provider: string; free: boolean; available: boolean; }
+interface ModelInfo { id: string; label: string; provider: string; free: boolean; available: boolean; localSupported?: boolean; }
 
 // -- Pipeline definition --
 const PIPELINE_STEPS = [
@@ -758,7 +758,13 @@ export default function AdminGenerate() {
             <select value={selectedVideoModel} onChange={(e) => setSelectedVideoModel(e.target.value)}
               className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.07] text-sm text-white/90 focus:outline-none focus:ring-2 focus:ring-violet-500/30">
               <option value="" className="bg-[#0c0820]">{t(locale, "admin_gen_default_config")}</option>
-              {videoModels.map((m) => <option key={m.id} value={m.id} disabled={!m.available} className="bg-[#0c0820]">{m.label}{!m.available ? (m.provider === "huggingface" ? " (no HF token)" : " (no API key)") : ""}</option>)}
+              {videoModels.map((m) => {
+                const isAvailable = videoExecLocal ? !!m.localSupported : m.available;
+                const unavailReason = videoExecLocal
+                  ? (!m.localSupported ? " (cloud only)" : "")
+                  : (!m.available ? (m.provider === "huggingface" ? " (no HF token)" : " (no API key)") : "");
+                return <option key={m.id} value={m.id} disabled={!isAvailable} className="bg-[#0c0820]">{m.label}{unavailReason}{m.localSupported && !videoExecLocal ? " 🖥️" : ""}</option>;
+              })}
             </select>
           </label>
           <div className="block">

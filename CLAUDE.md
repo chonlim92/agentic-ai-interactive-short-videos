@@ -128,6 +128,18 @@ Quality validation runs at four levels via `python agents/validate_quality.py`:
 - **Clips per scene**: 3-5 (stitched together for 15-20s per scene)
 - **Consistency**: Last frame of clip N is used as reference for clip N+1
 - **Cross-episode**: Character sheets, location sheets, and style guide enforced
+- **Execution modes**: Cloud (API) or Local GPU (diffusers pipeline, toggle in admin UI)
+
+### Supported Models (Cloud + Local)
+
+| Model | Cloud | Local GPU | Pipeline Class |
+|-------|:-----:|:---------:|----------------|
+| Seedance 2.0 | ✅ BytePlus | ❌ | — (proprietary) |
+| CogVideoX-5B | ✅ HF API | ✅ | `CogVideoXPipeline` |
+| Wan2.1-T2V-14B | ✅ HF API | ✅ | `WanPipeline` |
+| HunyuanVideo | ✅ HF API | ✅ | `HunyuanVideoPipeline` |
+| AnimateDiff-Lightning | ❌ | ✅ | `AnimateDiffPipeline` |
+| text-to-video-ms-1.7b | ✅ HF API | ✅ | `TextToVideoSDPipeline` |
 
 ## Content Policy
 

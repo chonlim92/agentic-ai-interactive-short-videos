@@ -137,14 +137,26 @@ The Next.js site uses a JSON file store at `site/data/store.json` — no externa
 
 ## Video Generation Models
 
-| Model | Provider | API | Clip Duration | Best For |
-|-------|----------|-----|--------------|----------|
-| **Seedance 2.0** | BytePlus Ark | Task-based (POST + poll) | 5–10s | High-quality animation, default model |
-| CogVideoX-5B | HuggingFace | Inference API | 3–6s | General purpose |
-| Wan2.1-T2V-14B | HuggingFace | Inference API | 3–6s | High fidelity |
-| HunyuanVideo | HuggingFace | Inference API | 3–6s | Fallback model |
-| AnimateDiff-Lightning | HuggingFace | Inference API | 3–6s | Fast generation |
-| text-to-video-ms-1.7b | HuggingFace | Inference API | 3–6s | Lightweight |
+All models support **cloud** (API-based) and/or **local GPU** (diffusers pipeline) execution. Toggle via the admin panel radio button or `--local` CLI flag.
+
+| Model | Provider | Cloud API | Local GPU | Clip Duration | Best For |
+|-------|----------|:---------:|:---------:|--------------|----------|
+| **Seedance 2.0** | BytePlus Ark | ✅ Task-based (POST + poll) | ❌ Proprietary | 5–10s | High-quality animation, default model |
+| CogVideoX-5B | HuggingFace | ✅ Inference API | ✅ `CogVideoXPipeline` | 3–6s | General purpose |
+| Wan2.1-T2V-14B | HuggingFace | ✅ Inference API | ✅ `WanPipeline` | 3–6s | High fidelity |
+| HunyuanVideo | HuggingFace | ✅ Inference API | ✅ `HunyuanVideoPipeline` | 3–6s | Fallback model |
+| AnimateDiff-Lightning | Local only | ❌ No endpoint | ✅ `AnimateDiffPipeline` | 3–6s | Fast local generation |
+| text-to-video-ms-1.7b | HuggingFace | ✅ Inference API | ✅ `TextToVideoSDPipeline` | 2–4s | Lightweight, low VRAM |
+
+### Local GPU Requirements
+
+| Model | Min VRAM | Notes |
+|-------|----------|-------|
+| AnimateDiff-Lightning | ~6 GB | Fastest local option |
+| text-to-video-ms-1.7b | ~4 GB | Smallest model, lower quality |
+| CogVideoX-5B | ~16 GB | Good balance of quality/speed |
+| Wan2.1-T2V-14B | ~24 GB | Highest quality, uses CPU offload |
+| HunyuanVideo | ~24 GB | Large model, uses CPU offload |
 
 ### Audio Models
 
@@ -194,7 +206,7 @@ Audience comments are **never** passed raw to other agents — they are always m
 
 | Component | Technology |
 |-----------|-----------|
-| Video Generation | HuggingFace Inference API, BytePlus Ark API (Seedance 2.0) |
+| Video Generation | HuggingFace Inference API, BytePlus Ark API, Local GPU (diffusers) |
 | Audio Generation | MusicGen, Bark TTS |
 | LLM | Anthropic Claude, OpenAI GPT-4 |
 | Website | Next.js 14 (React 18), Tailwind CSS, Framer Motion, Recharts |
