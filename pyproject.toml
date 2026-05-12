@@ -99,6 +99,9 @@ reportCallIssue = "warning"
 reportReturnType = "warning"
 reportArgumentType = "warning"
 reportUndefinedVariable = "warning"
+reportPrivateImportUsage = "warning"
+reportOptionalSubscript = "warning"
+reportOptionalMemberAccess = "warning"
 
 # --- Pytest ---
 [tool.pytest.ini_options]

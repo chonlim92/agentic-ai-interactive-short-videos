@@ -653,7 +653,9 @@ def generate_video_local(
 
         num_frames = min(fps * clip_duration, 49)  # CogVideoX max 49 frames
 
-        log.info(f"Generating video locally (CogVideoX): quality={quality}, seed={seed}, {width}x{height}")
+        log.info(
+            f"Generating video locally (CogVideoX): quality={quality}, seed={seed}, {width}x{height}"
+        )
         result = pipe(
             prompt=text_prompt,
             negative_prompt=negative_prompt,
@@ -676,7 +678,9 @@ def generate_video_local(
 
         num_frames = fps * clip_duration
 
-        log.info(f"Generating video locally (HunyuanVideo): quality={quality}, seed={seed}, {width}x{height}")
+        log.info(
+            f"Generating video locally (HunyuanVideo): quality={quality}, seed={seed}, {width}x{height}"
+        )
         result = pipe(
             prompt=text_prompt,
             negative_prompt=negative_prompt,
@@ -699,7 +703,9 @@ def generate_video_local(
 
         num_frames = fps * clip_duration
 
-        log.info(f"Generating video locally (Wan 2.1): quality={quality}, seed={seed}, {width}x{height}")
+        log.info(
+            f"Generating video locally (Wan 2.1): quality={quality}, seed={seed}, {width}x{height}"
+        )
         result = pipe(
             prompt=text_prompt,
             negative_prompt=negative_prompt,
@@ -722,7 +728,9 @@ def generate_video_local(
 
         num_frames = min(fps * clip_duration, 24)  # ModelScope works best with shorter clips
 
-        log.info(f"Generating video locally (TextToVideoSD): quality={quality}, seed={seed}, {width}x{height}")
+        log.info(
+            f"Generating video locally (TextToVideoSD): quality={quality}, seed={seed}, {width}x{height}"
+        )
         result = pipe(
             prompt=text_prompt,
             negative_prompt=negative_prompt,

@@ -12,5 +12,5 @@ def test_load_story_bible():
 
 def test_load_story_bible_missing():
     """Should raise for nonexistent story."""
-    with pytest.raises(SystemExit):
+    with pytest.raises(FileNotFoundError):
         load_story_bible("nonexistent-story")

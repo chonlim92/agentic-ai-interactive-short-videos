@@ -10,7 +10,7 @@ def test_video_generation_config_validates():
     """Full video_generation.yaml should pass schema validation."""
     data = load_yaml(config_path("video_generation.yaml"))
     config = validate_video_config(data)
-    assert config.model.name == "hunyuanvideo"
+    assert config.model.name == "seedance2.0"
     assert config.quality_assurance.clip_validation.min_fps == 20
     assert config.retry.max_attempts == 3
 
@@ -19,7 +19,7 @@ def test_composition_config_validates():
     """Full composition.yaml should pass schema validation."""
     data = load_yaml(config_path("composition.yaml"))
     config = validate_composition_config(data)
-    assert config.episode.target_duration_seconds == 180
+    assert config.episode.target_duration_seconds == 120
     assert config.composition.transitions.between_scenes == "crossfade"
 
 

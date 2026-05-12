@@ -80,6 +80,6 @@ def test_save_yaml(tmp_path):
 
 def test_load_yaml_project_relative():
     """load_yaml with relative path should resolve against PROJECT_ROOT."""
-    # This should load the actual story bible
-    result = load_yaml("data/story_bible.yaml")
+    # This should load the actual story bible from the stories directory
+    result = load_yaml("data/stories/the-ancient-without-a-plug/story_bible.yaml")
     assert "series" in result
