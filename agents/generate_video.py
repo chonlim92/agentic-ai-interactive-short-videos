@@ -54,8 +54,14 @@ SEEDREAM_MODELS = {
 }
 SEEDREAM_DEFAULT_MODEL = "seedream-5-0-260128"
 
-# LaoZhang Seedance video models
-LAOZHANG_VIDEO_MODELS = {"seedance2.0", "seedance-2.0"}
+# LaoZhang Seedance video models (doubao- prefix for LaoZhang API)
+LAOZHANG_VIDEO_MODELS = {
+    "seedance2.0": "doubao-seedance-2-0-260128",
+    "seedance-2.0": "doubao-seedance-2-0-260128",
+    "seedance2.0-fast": "doubao-seedance-2-0-fast-260128",
+    "seedance-2.0-fast": "doubao-seedance-2-0-fast-260128",
+}
+LAOZHANG_SEEDANCE_DEFAULT = "doubao-seedance-2-0-260128"
 
 # Quality presets: generation parameters per quality level
 QUALITY_PRESETS = {
@@ -1595,97 +1601,111 @@ def generate_video_laozhang(
     """
     Generate video using LaoZhang AI API (Seedance 2.0).
 
-    LaoZhang proxies the BytePlus Seedance API. Uses the same task-based
-    pattern as generate_video_byteplus but with LaoZhang credentials and endpoint.
+    Uses the Seedance-specific endpoint at /seedance/api/v3.
+    Requires a LaoZhang token from the SeeDance2 group.
     """
     import requests as req
 
-    api_key = os.getenv("LAOZHANG_API_KEY")
+    api_key = os.getenv("LAOZHANG_SEEDANCE_API_KEY") or os.getenv("LAOZHANG_API_KEY")
     if not api_key:
-        raise RuntimeError("LAOZHANG_API_KEY not configured in config/.env")
+        raise RuntimeError(
+            "LAOZHANG_SEEDANCE_API_KEY (or LAOZHANG_API_KEY) not configured in config/.env"
+        )
 
     text_prompt = _build_text_prompt(prompt) if isinstance(prompt, dict) else str(prompt)
     gen_config = load_config().get("generation", {})
     clip_duration = (
-        (prompt.get("duration_seconds") if isinstance(prompt, dict) else None)
-        or gen_config.get("clip_duration_seconds", 5)
-    )
+        prompt.get("duration_seconds") if isinstance(prompt, dict) else None
+    ) or gen_config.get("clip_duration_seconds", 5)
 
-    log.info(f"Calling LaoZhang API: model={model}, quality={quality}, duration={clip_duration}s")
+    # Resolve model name to LaoZhang API model ID
+    model_id = LAOZHANG_VIDEO_MODELS.get(model.lower(), LAOZHANG_SEEDANCE_DEFAULT)
+
+    log.info(f"Calling LaoZhang Seedance API: model={model_id}, duration={clip_duration}s")
     log.info(f"  Prompt: {text_prompt[:200]}")
 
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}",
+        "Accept": "application/json",
+        "Accept-Encoding": "identity",
     }
 
     content = [{"type": "text", "text": text_prompt}]
 
-    data = {
-        "model": "dreamina-seedance-2-0-260128",
+    data: dict = {
+        "model": model_id,
         "content": content,
         "duration": clip_duration,
         "ratio": get_video_dimensions()[2],
+        "resolution": "720p",
+        "watermark": False,
+        "generate_audio": False,
+        "return_last_frame": True,
     }
 
     if seed is not None:
         data["seed"] = seed
 
-    # LaoZhang uses the same BytePlus Ark task-based API
-    task_url = "https://ark.ap-southeast.bytepluses.com/api/v3/contents/generations/tasks"
+    # LaoZhang Seedance endpoint (NOT /v1/)
+    seedance_base = "https://api.laozhang.ai/seedance/api/v3"
+    task_url = f"{seedance_base}/contents/generations/tasks"
     resp = req.post(task_url, headers=headers, json=data, timeout=60)
 
     if resp.status_code != 200:
-        raise RuntimeError(f"LaoZhang API error ({resp.status_code}): {resp.text[:500]}")
+        raise RuntimeError(f"LaoZhang Seedance API error ({resp.status_code}): {resp.text[:500]}")
 
     result = resp.json()
-    task_id = result.get("data", {}).get("id") or result.get("id")
+    task_id = result.get("id")
     if not task_id:
-        raise RuntimeError(f"LaoZhang API did not return a task ID: {result}")
+        raise RuntimeError(f"LaoZhang Seedance API did not return a task ID: {result}")
 
     log.info(f"  Task submitted: {task_id}")
 
     # Poll for completion
-    poll_url = (
-        f"https://ark.ap-southeast.bytepluses.com/api/v3/contents/generations/tasks/{task_id}"
-    )
+    poll_url = f"{seedance_base}/contents/generations/tasks/{task_id}"
+    download_url = f"https://api.laozhang.ai/v1/videos/{task_id}/content"
     max_wait = 300
     elapsed = 0
-    poll_interval = 5
+    poll_interval = 10
 
     while elapsed < max_wait:
         time.sleep(poll_interval)
         elapsed += poll_interval
 
-        poll_resp = req.get(poll_url, headers=headers, timeout=30)
+        poll_resp = req.get(poll_url, headers=headers, timeout=60)
         if poll_resp.status_code != 200:
-            if elapsed % 15 == 0:
+            if elapsed % 30 == 0:
                 log.warning(f"  Poll returned {poll_resp.status_code}, retrying...")
             continue
 
         poll_result = poll_resp.json()
-        status = (
-            poll_result.get("data", {}).get("status", "") or poll_result.get("status", "")
-        ).lower()
 
-        if status in ("completed", "succeeded", "success"):
-            video_url = None
-            video_url = video_url or poll_result.get("data", {}).get("content", {}).get("video_url")
-            video_url = video_url or poll_result.get("content", {}).get("video_url")
-            video_url = video_url or poll_result.get("data", {}).get("video_url")
-            if not video_url:
-                outputs = poll_result.get("data", {}).get("outputs", [])
-                if outputs:
-                    video_url = (
-                        outputs[0] if isinstance(outputs[0], str) else outputs[0].get("url", "")
-                    )
+        # Extract status (can be at top level or nested)
+        status = ""
+        if isinstance(poll_result.get("status"), str):
+            status = poll_result["status"].lower()
+        elif isinstance(poll_result.get("data"), dict):
+            status = (poll_result["data"].get("status") or "").lower()
 
-            if not video_url:
-                raise RuntimeError(f"LaoZhang returned success but no video URL: {poll_result}")
+        if status in ("succeeded", "completed", "success"):
+            # Try to find video_url in response
+            video_url = _find_video_url(poll_result)
 
-            log.info(f"  Video generated in {elapsed}s, downloading...")
-            video_resp = req.get(video_url, timeout=120)
-            video_resp.raise_for_status()
+            if video_url:
+                log.info(f"  Video generated in {elapsed}s, downloading from video_url...")
+                video_resp = req.get(video_url, timeout=180)
+                video_resp.raise_for_status()
+            else:
+                # Fallback: use the stable download endpoint
+                log.info(f"  Video generated in {elapsed}s, downloading from /v1/videos/...")
+                video_resp = req.get(
+                    download_url,
+                    headers={"Authorization": f"Bearer {api_key}", "Accept": "video/mp4,*/*"},
+                    allow_redirects=True,
+                    timeout=180,
+                )
+                video_resp.raise_for_status()
 
             if output_path is None:
                 output_path = Path("laozhang_output.mp4")
@@ -1693,16 +1713,51 @@ def generate_video_laozhang(
             output_path.write_bytes(video_resp.content)
 
             log.info(f"Video saved: {output_path} ({output_path.stat().st_size / 1024:.1f} KB)")
+
+            # Save last_frame_url if available
+            last_frame_url = None
+            content_obj = poll_result.get("content", {})
+            if isinstance(content_obj, dict):
+                last_frame_url = content_obj.get("last_frame_url")
+            if not last_frame_url and isinstance(poll_result.get("data"), dict):
+                dc = poll_result["data"].get("content", {})
+                if isinstance(dc, dict):
+                    last_frame_url = dc.get("last_frame_url")
+            if last_frame_url and output_path:
+                lf_file = output_path.parent / f"{output_path.stem}_last_frame_url.txt"
+                lf_file.write_text(last_frame_url, encoding="utf-8")
+
             return output_path
 
-        elif status in ("failed", "error"):
-            error_msg = poll_result.get("data", {}).get("error", "Unknown error")
-            raise RuntimeError(f"LaoZhang generation failed: {error_msg}")
+        elif status in ("failed", "expired"):
+            error_msg = poll_result.get("error", poll_result)
+            raise RuntimeError(f"LaoZhang Seedance generation failed: {error_msg}")
         else:
-            if elapsed % 15 == 0:
-                log.info(f"  Still processing... ({elapsed}s elapsed, status={status})")
+            if elapsed % 30 == 0:
+                log.info(
+                    f"  Still processing... ({elapsed}s elapsed, status={status or 'unknown'})"
+                )
 
-    raise RuntimeError(f"LaoZhang generation timed out after {max_wait}s")
+    raise RuntimeError(f"LaoZhang Seedance generation timed out after {max_wait}s")
+
+
+def _find_video_url(data) -> str | None:
+    """Recursively search response for a video URL."""
+    if isinstance(data, dict):
+        for key in ("video_url", "videoUrl", "result_url", "url"):
+            value = data.get(key)
+            if isinstance(value, str) and value.startswith("http"):
+                return value
+        for value in data.values():
+            found = _find_video_url(value)
+            if found:
+                return found
+    if isinstance(data, list):
+        for item in data:
+            found = _find_video_url(item)
+            if found:
+                return found
+    return None
 
 
 def generate_image_seedream(
@@ -1790,7 +1845,9 @@ def generate_image_seedream(
                 output_path = Path("seedream_output.png")
             output_path.parent.mkdir(parents=True, exist_ok=True)
             output_path.write_bytes(img_resp.content)
-            log.info(f"Seedream image saved: {output_path} ({output_path.stat().st_size / 1024:.1f} KB)")
+            log.info(
+                f"Seedream image saved: {output_path} ({output_path.stat().st_size / 1024:.1f} KB)"
+            )
             return output_path
 
     if not image_data:
