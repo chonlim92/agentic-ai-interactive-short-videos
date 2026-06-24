@@ -716,7 +716,7 @@ def _generate_poster_seedream(
 
     seed = random.randint(0, 2**31 - 1)
     data: dict = {
-        "model": "seedream-4-5-251128",
+        "model": os.environ.get("SEEDREAM_MODEL", "seedream-5-0-260128"),
         "prompt": prompt,
         "size": size_param,
         "width": gen_w,

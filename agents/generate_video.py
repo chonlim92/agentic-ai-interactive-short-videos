@@ -40,6 +40,23 @@ MODEL_REGISTRY = {
 # Models that use BytePlus Ark API instead of HuggingFace
 BYTEPLUS_MODELS = {"seedance2.0", "dreamina-seedance-2-0-260128"}
 
+# LaoZhang API configuration
+LAOZHANG_API_BASE = "https://api.laozhang.ai/v1"
+
+# Seedream image models available via LaoZhang API
+SEEDREAM_MODELS = {
+    "seedream-4.0": "seedream-4-0-250828",
+    "seedream-4-0": "seedream-4-0-250828",
+    "seedream-4.5": "seedream-4-5-251128",
+    "seedream-4-5": "seedream-4-5-251128",
+    "seedream-5.0": "seedream-5-0-260128",
+    "seedream-5-0": "seedream-5-0-260128",
+}
+SEEDREAM_DEFAULT_MODEL = "seedream-5-0-260128"
+
+# LaoZhang Seedance video models
+LAOZHANG_VIDEO_MODELS = {"seedance2.0", "seedance-2.0"}
+
 # Quality presets: generation parameters per quality level
 QUALITY_PRESETS = {
     "draft": {"num_inference_steps": 20, "guidance_scale": 6.0},
@@ -1565,6 +1582,226 @@ def _dry_run(prompt: dict, output_path: Path | None) -> Path:
     # Write a minimal placeholder (not a valid video, but marks the file as generated)
     output_path.write_text("DRY_RUN_PLACEHOLDER")
     log.info(f"Dry-run output: {output_path}")
+    return output_path
+
+
+def generate_video_laozhang(
+    prompt: dict,
+    model: str = "seedance2.0",
+    quality: str = "standard",
+    seed: int | None = None,
+    output_path: Path | None = None,
+) -> Path:
+    """
+    Generate video using LaoZhang AI API (Seedance 2.0).
+
+    LaoZhang proxies the BytePlus Seedance API. Uses the same task-based
+    pattern as generate_video_byteplus but with LaoZhang credentials and endpoint.
+    """
+    import requests as req
+
+    api_key = os.getenv("LAOZHANG_API_KEY")
+    if not api_key:
+        raise RuntimeError("LAOZHANG_API_KEY not configured in config/.env")
+
+    text_prompt = _build_text_prompt(prompt) if isinstance(prompt, dict) else str(prompt)
+    gen_config = load_config().get("generation", {})
+    clip_duration = (
+        (prompt.get("duration_seconds") if isinstance(prompt, dict) else None)
+        or gen_config.get("clip_duration_seconds", 5)
+    )
+
+    log.info(f"Calling LaoZhang API: model={model}, quality={quality}, duration={clip_duration}s")
+    log.info(f"  Prompt: {text_prompt[:200]}")
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}",
+    }
+
+    content = [{"type": "text", "text": text_prompt}]
+
+    data = {
+        "model": "dreamina-seedance-2-0-260128",
+        "content": content,
+        "duration": clip_duration,
+        "ratio": get_video_dimensions()[2],
+    }
+
+    if seed is not None:
+        data["seed"] = seed
+
+    # LaoZhang uses the same BytePlus Ark task-based API
+    task_url = "https://ark.ap-southeast.bytepluses.com/api/v3/contents/generations/tasks"
+    resp = req.post(task_url, headers=headers, json=data, timeout=60)
+
+    if resp.status_code != 200:
+        raise RuntimeError(f"LaoZhang API error ({resp.status_code}): {resp.text[:500]}")
+
+    result = resp.json()
+    task_id = result.get("data", {}).get("id") or result.get("id")
+    if not task_id:
+        raise RuntimeError(f"LaoZhang API did not return a task ID: {result}")
+
+    log.info(f"  Task submitted: {task_id}")
+
+    # Poll for completion
+    poll_url = (
+        f"https://ark.ap-southeast.bytepluses.com/api/v3/contents/generations/tasks/{task_id}"
+    )
+    max_wait = 300
+    elapsed = 0
+    poll_interval = 5
+
+    while elapsed < max_wait:
+        time.sleep(poll_interval)
+        elapsed += poll_interval
+
+        poll_resp = req.get(poll_url, headers=headers, timeout=30)
+        if poll_resp.status_code != 200:
+            if elapsed % 15 == 0:
+                log.warning(f"  Poll returned {poll_resp.status_code}, retrying...")
+            continue
+
+        poll_result = poll_resp.json()
+        status = (
+            poll_result.get("data", {}).get("status", "") or poll_result.get("status", "")
+        ).lower()
+
+        if status in ("completed", "succeeded", "success"):
+            video_url = None
+            video_url = video_url or poll_result.get("data", {}).get("content", {}).get("video_url")
+            video_url = video_url or poll_result.get("content", {}).get("video_url")
+            video_url = video_url or poll_result.get("data", {}).get("video_url")
+            if not video_url:
+                outputs = poll_result.get("data", {}).get("outputs", [])
+                if outputs:
+                    video_url = (
+                        outputs[0] if isinstance(outputs[0], str) else outputs[0].get("url", "")
+                    )
+
+            if not video_url:
+                raise RuntimeError(f"LaoZhang returned success but no video URL: {poll_result}")
+
+            log.info(f"  Video generated in {elapsed}s, downloading...")
+            video_resp = req.get(video_url, timeout=120)
+            video_resp.raise_for_status()
+
+            if output_path is None:
+                output_path = Path("laozhang_output.mp4")
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path.write_bytes(video_resp.content)
+
+            log.info(f"Video saved: {output_path} ({output_path.stat().st_size / 1024:.1f} KB)")
+            return output_path
+
+        elif status in ("failed", "error"):
+            error_msg = poll_result.get("data", {}).get("error", "Unknown error")
+            raise RuntimeError(f"LaoZhang generation failed: {error_msg}")
+        else:
+            if elapsed % 15 == 0:
+                log.info(f"  Still processing... ({elapsed}s elapsed, status={status})")
+
+    raise RuntimeError(f"LaoZhang generation timed out after {max_wait}s")
+
+
+def generate_image_seedream(
+    prompt: str,
+    model: str = "seedream-5.0",
+    output_path: Path | None = None,
+    size: str = "1024x1024",
+    seed: int | None = None,
+) -> Path:
+    """
+    Generate image using LaoZhang AI API with Seedream models.
+
+    Supports models: seedream-4.0, seedream-4.5, seedream-5.0 (default).
+    Uses the OpenAI-compatible /v1/images/generations endpoint.
+    """
+    import base64
+
+    import requests as req
+
+    api_key = os.getenv("LAOZHANG_API_KEY")
+    if not api_key:
+        raise RuntimeError("LAOZHANG_API_KEY not configured in config/.env")
+
+    # Resolve model name to API model ID
+    model_id = SEEDREAM_MODELS.get(model, model)
+    if model_id not in SEEDREAM_MODELS.values():
+        model_id = SEEDREAM_DEFAULT_MODEL
+        log.warning(f"Unknown Seedream model '{model}', using default: {model_id}")
+
+    log.info(f"Calling LaoZhang Seedream API: model={model_id}, size={size}")
+    log.info(f"  Prompt: {prompt[:200]}")
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}",
+    }
+
+    data: dict = {
+        "model": model_id,
+        "prompt": prompt,
+        "n": 1,
+    }
+    # Only pass size/aspect_ratio for known-supported values
+    # Seedream supports: "2K", "1080p", aspect ratios like "16:9", "1:1"
+    size_map = {
+        "1920x1080": "1080p",
+        "1080p": "1080p",
+        "2K": "2K",
+        "2k": "2K",
+        "16:9": "16:9",
+        "9:16": "9:16",
+        "1:1": "1:1",
+    }
+    if size in size_map:
+        data["size"] = size_map[size]
+    elif size and ":" in size:
+        data["aspect_ratio"] = size
+    # Skip unsupported sizes like "1024x1024" — let API use default
+    if seed is not None:
+        data["seed"] = seed
+
+    resp = req.post(
+        f"{LAOZHANG_API_BASE}/images/generations",
+        headers=headers,
+        json=data,
+        timeout=120,
+    )
+
+    if resp.status_code != 200:
+        raise RuntimeError(f"LaoZhang Seedream API error ({resp.status_code}): {resp.text[:500]}")
+
+    result = resp.json()
+
+    # Extract image from response
+    image_data = None
+    data_list = result.get("data", [])
+    if data_list:
+        item = data_list[0]
+        if item.get("b64_json"):
+            image_data = item["b64_json"]
+        elif item.get("url"):
+            img_resp = req.get(item["url"], timeout=60)
+            img_resp.raise_for_status()
+            if output_path is None:
+                output_path = Path("seedream_output.png")
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path.write_bytes(img_resp.content)
+            log.info(f"Seedream image saved: {output_path} ({output_path.stat().st_size / 1024:.1f} KB)")
+            return output_path
+
+    if not image_data:
+        raise RuntimeError(f"LaoZhang Seedream returned no image data: {result}")
+
+    if output_path is None:
+        output_path = Path("seedream_output.png")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_bytes(base64.b64decode(image_data))
+
+    log.info(f"Seedream image saved: {output_path} ({output_path.stat().st_size / 1024:.1f} KB)")
     return output_path
 
 

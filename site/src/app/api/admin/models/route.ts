@@ -83,6 +83,34 @@ const VIDEO_MODELS = [
     free: false,
     localSupported: false,
   },
+  {
+    id: "laozhang/seedance2.0",
+    label: "Seedance 2.0 (LaoZhang)",
+    provider: "laozhang",
+    free: false,
+    localSupported: false,
+  },
+];
+
+const IMAGE_MODELS = [
+  {
+    id: "laozhang/seedream-5-0-260128",
+    label: "Seedream 5.0 (LaoZhang) [Default]",
+    provider: "laozhang",
+    free: false,
+  },
+  {
+    id: "laozhang/seedream-4-5-251128",
+    label: "Seedream 4.5 (LaoZhang)",
+    provider: "laozhang",
+    free: false,
+  },
+  {
+    id: "laozhang/seedream-4-0-250828",
+    label: "Seedream 4.0 (LaoZhang)",
+    provider: "laozhang",
+    free: false,
+  },
 ];
 
 const AUDIO_MODELS = [
@@ -112,6 +140,8 @@ function checkKeyAvailable(provider: string): boolean {
       return !!process.env.ATLASCLOUD_API_KEY && process.env.ATLASCLOUD_API_KEY !== "your_key_here";
     case "byteplus":
       return !!process.env.ARK_API_KEY && process.env.ARK_API_KEY !== "your_key_here";
+    case "laozhang":
+      return !!process.env.LAOZHANG_API_KEY && process.env.LAOZHANG_API_KEY !== "sk-your_key_here";
     default:
       return false;
   }
@@ -133,6 +163,7 @@ export async function GET() {
   return NextResponse.json({
     llm: enrich(LLM_MODELS),
     video: enrichVideo(VIDEO_MODELS),
+    image: enrich(IMAGE_MODELS),
     audio: enrich(AUDIO_MODELS),
   });
 }

@@ -1692,7 +1692,7 @@ def _generate_location_image_seedream(
     }
     seed = random.randint(0, 2**31 - 1)
     data = {
-        "model": "seedream-4-5-251128",
+        "model": os.environ.get("SEEDREAM_MODEL", "seedream-5-0-260128"),
         "prompt": prompt,
         "size": "2K",
         "aspect_ratio": "16:9",
@@ -1935,7 +1935,7 @@ def _generate_keyframe_seedream(
     }
     seed = random.randint(0, 2**31 - 1)
     data = {
-        "model": "seedream-4-5-251128",
+        "model": os.environ.get("SEEDREAM_MODEL", "seedream-5-0-260128"),
         "prompt": prompt,
         "size": "1080p",
         "aspect_ratio": "16:9",
@@ -2107,7 +2107,7 @@ def _generate_avatar_seedream(
     }
     seed = random.randint(0, 2**31 - 1)
     data = {
-        "model": "seedream-4-5-251128",
+        "model": os.environ.get("SEEDREAM_MODEL", "seedream-5-0-260128"),
         "prompt": prompt,
         "size": "2K",
         "aspect_ratio": "16:9",  # Landscape for three-view character sheet
